@@ -30,28 +30,43 @@ class KBCToolsAlleleCatalogToolController extends Controller
         if ($organism == "Zmays") {
             $table_name = "Zmays_Panzea_AGPv3_Allele_Catalog";
             $dataset_array = array("Zmays_Panzea_AGPv3_Allele_Catalog");
+
+            // Query gene from database
+            $sql = "SELECT DISTINCT Gene FROM " . $db . "." . $table_name . " WHERE Gene IS NOT NULL AND Gene LIKE 'GRMZM%' LIMIT 3;";
+            $gene_array = DB::connection($db)->select($sql);
         } elseif ($organism == "Athaliana") {
             $table_name = "Athaliana_Arabidopsis_TAIR10_Allele_Catalog";
             $dataset_array = array("Athaliana_Arabidopsis_TAIR10_Allele_Catalog");
+
+            // Query gene from database
+            $sql = "SELECT DISTINCT Gene FROM " . $db . "." . $table_name . " WHERE Gene IS NOT NULL LIMIT 3;";
+            $gene_array = DB::connection($db)->select($sql);
         }
 
-        // Query data from database
-        $sql = "SELECT DISTINCT Gene FROM " . $db . "." . $table_name . " WHERE Gene IS NOT NULL LIMIT 3;";
-        $gene_array = DB::connection($db)->select($sql);
+        if (isset($table_name)) {
+            // Query accession from database
+            $sql = "SELECT DISTINCT Accession FROM " . $db . "." . $table_name . " WHERE Accession IS NOT NULL LIMIT 3;";
+            $accession_array = DB::connection($db)->select($sql);
 
-        $sql = "SELECT DISTINCT Accession FROM " . $db . "." . $table_name . " WHERE Accession IS NOT NULL LIMIT 3;";
-        $accession_array = DB::connection($db)->select($sql);
+            // Package variables that need to go to the view
+            $info = [
+                'organism' => $organism,
+                'dataset_array' => $dataset_array,
+                'gene_array' => $gene_array,
+                'accession_array' => $accession_array,
+            ];
 
-        // Package variables that need to go to the view
-        $info = [
-            'organism' => $organism,
-            'dataset_array' => $dataset_array,
-            'gene_array' => $gene_array,
-            'accession_array' => $accession_array,
-        ];
+            // Return to view
+            return view('system/tools/AlleleCatalogTool/AlleleCatalogTool')->with('info', $info);
+        } else {
+            // Package variables that need to go to the view
+            $info = [
+                'organism' => $organism,
+            ];
 
-        // Return to view
-        return view('system/tools/AlleleCatalogTool/AlleleCatalogTool')->with('info', $info);
+            // Return to view
+            return view('system/tools/AlleleCatalogTool/AlleleCatalogToolNotAvailable')->with('info', $info);
+        }
     }
 
 
