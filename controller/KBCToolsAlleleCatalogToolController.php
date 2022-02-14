@@ -105,23 +105,47 @@ class KBCToolsAlleleCatalogToolController extends Controller
         }
 
         // Construct sql then make query
-        $sql = "
-        SELECT COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic') OR Improvement_Status IS NULL, 1, null)) AS Total, 
-        COUNT(IF(Imputation = '+', 1, null)) AS Imputed, 
-        COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, 
-        Gene, Position, Genotype, Genotype_with_Description 
-        FROM " . $db . "." . $dataset1 . " 
-        WHERE (Gene IN ('";
-        for ($i = 0; $i < count($gene_arr); $i++) {
-            if ($i < (count($gene_arr) - 1)) {
-                $sql = $sql . $gene_arr[$i] . "', '";
-            } else {
-                $sql = $sql . $gene_arr[$i];
+        if ($organism == "Zmays") {
+            $sql = "
+            SELECT COUNT(IF(Improvement_Status = 'Improved', 1, null)) AS Improved_Cultivar, 
+            COUNT(IF(Improvement_Status = 'Landrace', 1, null)) AS Landrace, 
+            COUNT(IF(Improvement_Status = 'Other', 1, null)) AS Other, 
+            COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other') OR Improvement_Status IS NULL, 1, null)) AS Total, 
+            COUNT(IF(Imputation = '+', 1, null)) AS Imputed, 
+            COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, 
+            Gene, Position, Genotype, Genotype_with_Description 
+            FROM " . $db . "." . $dataset1 . " 
+            WHERE (Gene IN ('";
+            for ($i = 0; $i < count($gene_arr); $i++) {
+                if ($i < (count($gene_arr) - 1)) {
+                    $sql = $sql . $gene_arr[$i] . "', '";
+                } else {
+                    $sql = $sql . $gene_arr[$i];
+                }
             }
+            $sql = $sql . "')) 
+            GROUP BY Gene, Position, Genotype, Genotype_with_Description 
+            ORDER BY Gene, Position, Total DESC;";
+        } else {
+            $sql = "
+            SELECT COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other') OR Improvement_Status IS NULL, 1, null)) AS Total, 
+            COUNT(IF(Imputation = '+', 1, null)) AS Imputed, 
+            COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, 
+            Gene, Position, Genotype, Genotype_with_Description 
+            FROM " . $db . "." . $dataset1 . " 
+            WHERE (Gene IN ('";
+            for ($i = 0; $i < count($gene_arr); $i++) {
+                if ($i < (count($gene_arr) - 1)) {
+                    $sql = $sql . $gene_arr[$i] . "', '";
+                } else {
+                    $sql = $sql . $gene_arr[$i];
+                }
+            }
+            $sql = $sql . "')) 
+            GROUP BY Gene, Position, Genotype, Genotype_with_Description 
+            ORDER BY Gene, Position, Total DESC;";
         }
-        $sql = $sql . "')) 
-        GROUP BY Gene, Position, Genotype, Genotype_with_Description 
-        ORDER BY Gene, Position, Total DESC;";
+        
 
         $result_arr = DB::connection($db)->select($sql);
         $result_arr = $this->processAccessionCounts($result_arr);
@@ -152,7 +176,37 @@ class KBCToolsAlleleCatalogToolController extends Controller
         // Database
         $db = "KBC_" . $organism;
 
-        if (preg_match("/total/i", strval($key))) {
+        if (preg_match("/improved.cultivar/i", strval($key))) {
+            $sql = "
+                SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+                Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                FROM " . $db . "." . $dataset . "
+                WHERE (Gene IN ('" . $gene . "'))
+                AND Position = '" . $position . "'
+                AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                AND Improvement_Status LIKE '%improved%' ORDER BY Accession;
+            ";
+        } else if (preg_match("/landrace/i", strval($key))) {
+            $sql = "
+                SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+                Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                FROM " . $db . "." . $dataset . "
+                WHERE (Gene IN ('" . $gene . "'))
+                AND Position = '" . $position . "'
+                AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                AND Improvement_Status LIKE '%landrace%' ORDER BY Accession;
+            ";
+        } else if (preg_match("/other/i", strval($key))) {
+            $sql = "
+                SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+                Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                FROM " . $db . "." . $dataset . "
+                WHERE (Gene IN ('" . $gene . "'))
+                AND Position = '" . $position . "'
+                AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                AND Improvement_Status LIKE '%other%' ORDER BY Accession;
+            ";
+        } else if (preg_match("/total/i", strval($key))) {
             $sql = "
                 SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
                 Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
@@ -212,23 +266,47 @@ class KBCToolsAlleleCatalogToolController extends Controller
         }
 
         // Construct sql then make query
-        $sql = "
-        SELECT COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic') OR Improvement_Status IS NULL, 1, null)) AS Total, 
-        COUNT(IF(Imputation = '+', 1, null)) AS Imputed, 
-        COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, 
-        Gene, Position, Genotype, Genotype_with_Description 
-        FROM " . $db . "." . $dataset . " 
-        WHERE (Gene IN ('";
-        for ($i = 0; $i < count($gene_arr); $i++) {
-            if ($i < (count($gene_arr) - 1)) {
-                $sql = $sql . $gene_arr[$i] . "', '";
-            } else {
-                $sql = $sql . $gene_arr[$i];
+        if ($organism == "Zmays") {
+            $sql = "
+            SELECT COUNT(IF(Improvement_Status = 'Improved', 1, null)) AS Improved_Cultivar, 
+            COUNT(IF(Improvement_Status = 'Landrace', 1, null)) AS Landrace, 
+            COUNT(IF(Improvement_Status = 'Other', 1, null)) AS Other, 
+            COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other') OR Improvement_Status IS NULL, 1, null)) AS Total, 
+            COUNT(IF(Imputation = '+', 1, null)) AS Imputed, 
+            COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, 
+            Gene, Position, Genotype, Genotype_with_Description 
+            FROM " . $db . "." . $dataset . " 
+            WHERE (Gene IN ('";
+            for ($i = 0; $i < count($gene_arr); $i++) {
+                if ($i < (count($gene_arr) - 1)) {
+                    $sql = $sql . $gene_arr[$i] . "', '";
+                } else {
+                    $sql = $sql . $gene_arr[$i];
+                }
             }
+            $sql = $sql . "')) 
+            GROUP BY Gene, Position, Genotype, Genotype_with_Description 
+            ORDER BY Gene, Position, Total DESC;";
+        } else {
+            $sql = "
+            SELECT COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other') OR Improvement_Status IS NULL, 1, null)) AS Total, 
+            COUNT(IF(Imputation = '+', 1, null)) AS Imputed, 
+            COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, 
+            Gene, Position, Genotype, Genotype_with_Description 
+            FROM " . $db . "." . $dataset . " 
+            WHERE (Gene IN ('";
+            for ($i = 0; $i < count($gene_arr); $i++) {
+                if ($i < (count($gene_arr) - 1)) {
+                    $sql = $sql . $gene_arr[$i] . "', '";
+                } else {
+                    $sql = $sql . $gene_arr[$i];
+                }
+            }
+            $sql = $sql . "')) 
+            GROUP BY Gene, Position, Genotype, Genotype_with_Description 
+            ORDER BY Gene, Position, Total DESC;";
         }
-        $sql = $sql . "')) 
-        GROUP BY Gene, Position, Genotype, Genotype_with_Description 
-        ORDER BY Gene, Position, Total DESC;";
+        
 
         $result_arr = DB::connection($db)->select($sql);
 
@@ -293,23 +371,47 @@ class KBCToolsAlleleCatalogToolController extends Controller
         }
 
         // Construct sql then make query
-        $sql = "
-        SELECT COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic') OR Improvement_Status IS NULL, 1, null)) AS Total, 
-        COUNT(IF(Imputation = '+', 1, null)) AS Imputed, 
-        COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, 
-        Gene, Position, Genotype, Genotype_with_Description 
-        FROM " . $db . "." . $dataset . " 
-        WHERE (Gene IN ('";
-        for ($i = 0; $i < count($gene_arr); $i++) {
-            if ($i < (count($gene_arr) - 1)) {
-                $sql = $sql . $gene_arr[$i] . "', '";
-            } else {
-                $sql = $sql . $gene_arr[$i];
+        if ($organism == "Zmays") {
+            $sql = "
+            SELECT COUNT(IF(Improvement_Status = 'Improved', 1, null)) AS Improved_Cultivar, 
+            COUNT(IF(Improvement_Status = 'Landrace', 1, null)) AS Landrace, 
+            COUNT(IF(Improvement_Status = 'Other', 1, null)) AS Other, 
+            COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other') OR Improvement_Status IS NULL, 1, null)) AS Total, 
+            COUNT(IF(Imputation = '+', 1, null)) AS Imputed, 
+            COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, 
+            Gene, Position, Genotype, Genotype_with_Description 
+            FROM " . $db . "." . $dataset . " 
+            WHERE (Gene IN ('";
+            for ($i = 0; $i < count($gene_arr); $i++) {
+                if ($i < (count($gene_arr) - 1)) {
+                    $sql = $sql . $gene_arr[$i] . "', '";
+                } else {
+                    $sql = $sql . $gene_arr[$i];
+                }
             }
+            $sql = $sql . "')) 
+            GROUP BY Gene, Position, Genotype, Genotype_with_Description 
+            ORDER BY Gene, Position, Total DESC;";
+        } else {
+            $sql = "
+            SELECT COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other') OR Improvement_Status IS NULL, 1, null)) AS Total, 
+            COUNT(IF(Imputation = '+', 1, null)) AS Imputed, 
+            COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, 
+            Gene, Position, Genotype, Genotype_with_Description 
+            FROM " . $db . "." . $dataset . " 
+            WHERE (Gene IN ('";
+            for ($i = 0; $i < count($gene_arr); $i++) {
+                if ($i < (count($gene_arr) - 1)) {
+                    $sql = $sql . $gene_arr[$i] . "', '";
+                } else {
+                    $sql = $sql . $gene_arr[$i];
+                }
+            }
+            $sql = $sql . "')) 
+            GROUP BY Gene, Position, Genotype, Genotype_with_Description 
+            ORDER BY Gene, Position, Total DESC;";
         }
-        $sql = $sql . "')) 
-        GROUP BY Gene, Position, Genotype, Genotype_with_Description 
-        ORDER BY Gene, Position, Total DESC;";
+        
 
         $result_arr = DB::connection($db)->select($sql);
 
