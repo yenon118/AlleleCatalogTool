@@ -126,9 +126,30 @@ class KBCToolsAlleleCatalogToolController extends Controller
             $sql = $sql . "')) 
             GROUP BY Gene, Position, Genotype, Genotype_with_Description 
             ORDER BY Gene, Position, Total DESC;";
+        } else if ($organism == "Athaliana") {
+            $sql = "
+            SELECT COUNT(IF(Improvement_Status = 'Lab Strain', 1, null)) AS Lab_Strain, 
+            COUNT(IF(Improvement_Status = 'Admixture Group', 1, null)) AS Admixture_Group, 
+            COUNT(IF(Improvement_Status = 'Country', 1, null)) AS Country, 
+            COUNT(IF(Improvement_Status IN ('Lab Strain', 'Admixture Group', 'Country') OR Improvement_Status IS NULL, 1, null)) AS Total, 
+            COUNT(IF(Imputation = '+', 1, null)) AS Imputed, 
+            COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, 
+            Gene, Position, Genotype, Genotype_with_Description 
+            FROM " . $db . "." . $dataset1 . " 
+            WHERE (Gene IN ('";
+            for ($i = 0; $i < count($gene_arr); $i++) {
+                if ($i < (count($gene_arr) - 1)) {
+                    $sql = $sql . $gene_arr[$i] . "', '";
+                } else {
+                    $sql = $sql . $gene_arr[$i];
+                }
+            }
+            $sql = $sql . "')) 
+            GROUP BY Gene, Position, Genotype, Genotype_with_Description 
+            ORDER BY Gene, Position, Total DESC;";
         } else {
             $sql = "
-            SELECT COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other') OR Improvement_Status IS NULL, 1, null)) AS Total, 
+            SELECT COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other', 'Admixture Group', 'Lab Strain', 'Country') OR Improvement_Status IS NULL, 1, null)) AS Total, 
             COUNT(IF(Imputation = '+', 1, null)) AS Imputed, 
             COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, 
             Gene, Position, Genotype, Genotype_with_Description 
@@ -287,9 +308,30 @@ class KBCToolsAlleleCatalogToolController extends Controller
             $sql = $sql . "')) 
             GROUP BY Gene, Position, Genotype, Genotype_with_Description 
             ORDER BY Gene, Position, Total DESC;";
+        } else if ($organism == "Athaliana") {
+            $sql = "
+            SELECT COUNT(IF(Improvement_Status = 'Lab Strain', 1, null)) AS Lab_Strain, 
+            COUNT(IF(Improvement_Status = 'Admixture Group', 1, null)) AS Admixture_Group, 
+            COUNT(IF(Improvement_Status = 'Country', 1, null)) AS Country, 
+            COUNT(IF(Improvement_Status IN ('Lab Strain', 'Admixture Group', 'Country') OR Improvement_Status IS NULL, 1, null)) AS Total, 
+            COUNT(IF(Imputation = '+', 1, null)) AS Imputed, 
+            COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, 
+            Gene, Position, Genotype, Genotype_with_Description 
+            FROM " . $db . "." . $dataset . " 
+            WHERE (Gene IN ('";
+            for ($i = 0; $i < count($gene_arr); $i++) {
+                if ($i < (count($gene_arr) - 1)) {
+                    $sql = $sql . $gene_arr[$i] . "', '";
+                } else {
+                    $sql = $sql . $gene_arr[$i];
+                }
+            }
+            $sql = $sql . "')) 
+            GROUP BY Gene, Position, Genotype, Genotype_with_Description 
+            ORDER BY Gene, Position, Total DESC;";
         } else {
             $sql = "
-            SELECT COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other') OR Improvement_Status IS NULL, 1, null)) AS Total, 
+            SELECT COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other', 'Admixture Group', 'Lab Strain', 'Country') OR Improvement_Status IS NULL, 1, null)) AS Total, 
             COUNT(IF(Imputation = '+', 1, null)) AS Imputed, 
             COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, 
             Gene, Position, Genotype, Genotype_with_Description 
@@ -392,9 +434,30 @@ class KBCToolsAlleleCatalogToolController extends Controller
             $sql = $sql . "')) 
             GROUP BY Gene, Position, Genotype, Genotype_with_Description 
             ORDER BY Gene, Position, Total DESC;";
+        } else if ($organism == "Athaliana") {
+            $sql = "
+            SELECT COUNT(IF(Improvement_Status = 'Lab Strain', 1, null)) AS Lab_Strain, 
+            COUNT(IF(Improvement_Status = 'Admixture Group', 1, null)) AS Admixture_Group, 
+            COUNT(IF(Improvement_Status = 'Country', 1, null)) AS Country, 
+            COUNT(IF(Improvement_Status IN ('Lab Strain', 'Admixture Group', 'Country') OR Improvement_Status IS NULL, 1, null)) AS Total, 
+            COUNT(IF(Imputation = '+', 1, null)) AS Imputed, 
+            COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, 
+            Gene, Position, Genotype, Genotype_with_Description 
+            FROM " . $db . "." . $dataset . " 
+            WHERE (Gene IN ('";
+            for ($i = 0; $i < count($gene_arr); $i++) {
+                if ($i < (count($gene_arr) - 1)) {
+                    $sql = $sql . $gene_arr[$i] . "', '";
+                } else {
+                    $sql = $sql . $gene_arr[$i];
+                }
+            }
+            $sql = $sql . "')) 
+            GROUP BY Gene, Position, Genotype, Genotype_with_Description 
+            ORDER BY Gene, Position, Total DESC;";
         } else {
             $sql = "
-            SELECT COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other') OR Improvement_Status IS NULL, 1, null)) AS Total, 
+            SELECT COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other', 'Admixture Group', 'Lab Strain', 'Country') OR Improvement_Status IS NULL, 1, null)) AS Total, 
             COUNT(IF(Imputation = '+', 1, null)) AS Imputed, 
             COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, 
             Gene, Position, Genotype, Genotype_with_Description 
