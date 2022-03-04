@@ -50,7 +50,7 @@ $splice_color_code = "#9EE85C";
     <!-- Modal content -->
     <div class="modal-content">
         <span class="modal-close">&times;</span>
-        <div id="modal-content-div" style='width:100%;height:100%; border:3px solid #000; overflow:scroll;max-height:1000px;'></div>
+        <div id="modal-content-div" style='width:auto;height:auto; border:3px solid #000; overflow:scroll;max-height:1000px;'></div>
         <div id="modal-content-comment"></div>
     </div>
 </div>
