@@ -520,6 +520,9 @@ class KBCToolsAlleleCatalogToolController extends Controller
         for ($i = 0; $i < count($gene_arr); $i++) {
             $gene_arr[$i] = trim($gene_arr[$i]);
         }
+        for ($i = 0; $i < count($checkboxes); $i++) {
+            $checkboxes[$i] = trim($checkboxes[$i]);
+        }
 
         // Construct sql then make query
         $sql = "SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
@@ -532,17 +535,6 @@ class KBCToolsAlleleCatalogToolController extends Controller
             } else {
                 $sql = $sql . $gene_arr[$i];
             }
-        }
-        $sql = $sql . "')) AND (Improvement_Status IN ('";
-        for ($i = 0; $i < count($checkboxes); $i++) {
-            if ($i < (count($checkboxes) - 1)) {
-                $sql = $sql . str_replace('_', ' ', $checkboxes[$i]) . "', '";
-            } else {
-                $sql = $sql . str_replace('_', ' ', $checkboxes[$i]);
-            }
-        }
-        if(in_array("Improved_Cultivar", $checkboxes)) {
-            $sql = $sql . "', 'Improved";
         }
         $sql = $sql . "')));";
 
@@ -698,6 +690,9 @@ class KBCToolsAlleleCatalogToolController extends Controller
         for ($i = 0; $i < count($gene_arr); $i++) {
             $gene_arr[$i] = trim($gene_arr[$i]);
         }
+        for ($i = 0; $i < count($checkboxes); $i++) {
+            $checkboxes[$i] = trim($checkboxes[$i]);
+        }
 
         // Construct sql then make query
         $sql = "SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
@@ -710,17 +705,6 @@ class KBCToolsAlleleCatalogToolController extends Controller
             } else {
                 $sql = $sql . $gene_arr[$i];
             }
-        }
-        $sql = $sql . "')) AND (Improvement_Status IN ('";
-        for ($i = 0; $i < count($checkboxes); $i++) {
-            if ($i < (count($checkboxes) - 1)) {
-                $sql = $sql . str_replace('_', ' ', $checkboxes[$i]) . "', '";
-            } else {
-                $sql = $sql . str_replace('_', ' ', $checkboxes[$i]);
-            }
-        }
-        if(in_array("Improved_Cultivar", $checkboxes)) {
-            $sql = $sql . "', 'Improved";
         }
         $sql = $sql . "')));";
 
