@@ -5,6 +5,7 @@ $organism = $info['organism'];
 $dataset_array = $info['dataset_array'];
 $gene_array = $info['gene_array'];
 $accession_array = $info['accession_array'];
+$checkboxes = $info['checkboxes'];
 
 @endphp
 
@@ -42,6 +43,14 @@ $accession_array = $info['accession_array'];
                 <br />
                 <textarea id="gene1" name="gene1" rows="12" cols="40"></textarea>
                 <br /><br />
+                @foreach($checkboxes as $key => $checkbox)
+                <input type="checkbox" id="{{ $checkbox }}" name="{{ $checkbox }}" value="{{ $checkbox }}" checked>
+                <label for="{{ $checkbox }}">{{ str_replace('_', ' ', $checkbox) }}</label>
+                @if ($key != 0 && $key % 3 === 0)
+                    <br />
+                @endif
+                @endforeach
+                <br /><br />
                 <input type="submit" value="Search">
             </form>
         </td>
@@ -66,7 +75,7 @@ $accession_array = $info['accession_array'];
                     )
                 </span>
                 <br />
-                <textarea id="accession" name="accession" rows="9" cols="40"></textarea>
+                <textarea id="accession" name="accession" rows="12" cols="40"></textarea>
                 <br /><br />
                 <b>Gene name</b><span style="font-size:10pt">&nbsp;(One gene name only; eg {{ $gene_array[0]->Gene }})</span>
                 <br />

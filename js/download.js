@@ -65,7 +65,9 @@ function createAndDownloadCsvFile(csvString, filename) {
 }
 
 
-function downloadAllCountsByGene(organism, dataset, gene) {
+function downloadAllCountsByGene(organism, dataset, gene, checkboxes) {
+    checkboxes = checkboxes.split(";");
+
     $.ajax({
         url: 'downloadAllCountsByGene/'+organism,
         type: 'GET',
@@ -73,7 +75,8 @@ function downloadAllCountsByGene(organism, dataset, gene) {
         data: {
             Gene: gene,
             Dataset: dataset,
-            Organism: organism
+            Organism: organism,
+            Checkboxes: checkboxes
         },
         success: function (response) {
             let res = JSON.parse(response);
@@ -91,7 +94,9 @@ function downloadAllCountsByGene(organism, dataset, gene) {
 }
 
 
-function downloadAllByGene(organism, dataset, gene) {
+function downloadAllByGene(organism, dataset, gene, checkboxes) {
+    checkboxes = checkboxes.split(";");
+
     $.ajax({
         url: 'downloadAllByGene/'+organism,
         type: 'GET',
@@ -99,7 +104,8 @@ function downloadAllByGene(organism, dataset, gene) {
         data: {
             Gene: gene,
             Dataset: dataset,
-            Organism: organism
+            Organism: organism,
+            Checkboxes: checkboxes
         },
         success: function (response) {
             let res = JSON.parse(response);
@@ -117,8 +123,9 @@ function downloadAllByGene(organism, dataset, gene) {
 }
 
 
-function downloadAllCountsByMultipleGenes(organism, dataset, genes) {
+function downloadAllCountsByMultipleGenes(organism, dataset, genes, checkboxes) {
     genes = genes.split(";");
+    checkboxes = checkboxes.split(";");
 
     $.ajax({
         url: 'downloadAllCountsByMultipleGenes/'+organism,
@@ -127,7 +134,8 @@ function downloadAllCountsByMultipleGenes(organism, dataset, genes) {
         data: {
             Genes: genes,
             Dataset: dataset,
-            Organism: organism
+            Organism: organism,
+            Checkboxes: checkboxes
         },
         success: function (response) {
             let res = JSON.parse(response);
@@ -145,8 +153,9 @@ function downloadAllCountsByMultipleGenes(organism, dataset, genes) {
 }
 
 
-function downloadAllByMultipleGenes(organism, dataset, genes) {
+function downloadAllByMultipleGenes(organism, dataset, genes, checkboxes) {
     genes = genes.split(";");
+    checkboxes = checkboxes.split(";");
 
     $.ajax({
         url: 'downloadAllByMultipleGenes/'+organism,
@@ -155,7 +164,8 @@ function downloadAllByMultipleGenes(organism, dataset, genes) {
         data: {
             Genes: genes,
             Dataset: dataset,
-            Organism: organism
+            Organism: organism,
+            Checkboxes: checkboxes
         },
         success: function (response) {
             let res = JSON.parse(response);

@@ -5,7 +5,7 @@ $organism = $info['organism'];
 $dataset1 = $info['dataset1'];
 $gene1 = $info['gene1'];
 $result_arr = $info['result_arr'];
-
+$checkboxes = $info['checkboxes'];
 
 $gene_arr = preg_split("/[;, \n]+/", $gene1);
 for ($i = 0; $i < count($gene_arr); $i++) {
@@ -141,8 +141,8 @@ for ($i = 0; $i < count($result_arr); $i++) {
     echo "</div>";
 
     echo "<div style='margin-top:10px;' align='right'>";
-    echo "<button onclick=\"downloadAllCountsByGene('" . $organism . "', '" . $dataset1 . "', '" . $segment_arr[0]->Gene . "')\" style=\"margin-right:20px;\"> Download (Accession Counts)</button>";
-    echo "<button onclick=\"downloadAllByGene('" . $organism . "', '" . $dataset1 . "', '" . $segment_arr[0]->Gene . "')\"> Download (All Accessions)</button>";
+    echo "<button onclick=\"downloadAllCountsByGene('" . $organism . "', '" . $dataset1 . "', '" . $segment_arr[0]->Gene . "', '" . implode(";", $checkboxes) . "')\" style=\"margin-right:20px;\"> Download (Accession Counts)</button>";
+    echo "<button onclick=\"downloadAllByGene('" . $organism . "', '" . $dataset1 . "', '" . $segment_arr[0]->Gene . "', '" . implode(";", $checkboxes) . "')\"> Download (All Accessions)</button>";
     echo "</div>";
 
     echo "<br />";
@@ -151,8 +151,8 @@ for ($i = 0; $i < count($result_arr); $i++) {
 
 echo "<br/><br/>";
 echo "<div style='margin-top:10px;' align='center'>";
-echo "<button onclick=\"downloadAllCountsByMultipleGenes('" . $organism . "', '" . $dataset1 . "', '" . implode(";", $gene_arr) . "')\" style=\"margin-right:20px;\"> Download All (Accession Counts)</button>";
-echo "<button onclick=\"downloadAllByMultipleGenes('" . $organism . "', '" . $dataset1 . "', '" . implode(";", $gene_arr) . "')\" style=\"margin-right:20px;\"> Download All (All Accessions)</button>";
+echo "<button onclick=\"downloadAllCountsByMultipleGenes('" . $organism . "', '" . $dataset1 . "', '" . implode(";", $gene_arr) . "', '" . implode(";", $checkboxes) . "')\" style=\"margin-right:20px;\"> Download All (Accession Counts)</button>";
+echo "<button onclick=\"downloadAllByMultipleGenes('" . $organism . "', '" . $dataset1 . "', '" . implode(";", $gene_arr) . "', '" . implode(";", $checkboxes) . "')\" style=\"margin-right:20px;\"> Download All (All Accessions)</button>";
 echo "</div>";
 echo "<br/><br/>";
 

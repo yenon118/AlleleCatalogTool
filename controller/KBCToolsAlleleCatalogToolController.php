@@ -43,6 +43,15 @@ class KBCToolsAlleleCatalogToolController extends Controller
             $gene_array = DB::connection($db)->select($sql);
         }
 
+        // Checkboxes options
+        if ($organism == "Zmays") {
+            $checkboxes = array("Improved_Cultivar", "Landrace", "Other", "Imputed", "Unimputed");
+        } elseif ($organism == "Athaliana") {
+            $checkboxes = array("Lab_Strain", "Admixture_Group", "Country", "Imputed", "Unimputed");
+        } else {
+            $checkboxes = array("Imputed", "Unimputed");
+        }
+
         if (isset($table_name)) {
             // Query accession from database
             $sql = "SELECT DISTINCT Accession FROM " . $db . "." . $table_name . " WHERE Accession IS NOT NULL LIMIT 3;";
@@ -54,6 +63,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
                 'dataset_array' => $dataset_array,
                 'gene_array' => $gene_array,
                 'accession_array' => $accession_array,
+                'checkboxes' => $checkboxes,
             ];
 
             // Return to view
@@ -98,22 +108,70 @@ class KBCToolsAlleleCatalogToolController extends Controller
         $dataset1 = $request->dataset1;
         $gene1 = $request->gene1;
 
+        $improved_cultivar = $request->Improved_Cultivar;
+        $landrace = $request->Landrace;
+        $other = $request->Other;
+        $lab_strain = $request->Lab_Strain;
+        $admixture_group = $request->Admixture_Group;
+        $country = $request->Country;
+        $imputed = $request->Imputed;
+        $unimputed = $request->Unimputed;
+
         // Parse genes
         $gene_arr = preg_split("/[;, \n]+/", $gene1);
         for ($i = 0; $i < count($gene_arr); $i++) {
             $gene_arr[$i] = trim($gene_arr[$i]);
         }
 
+        // Make a checkboxes array what have been selected
+        $checkboxes = array();
+        if(isset($improved_cultivar)) {
+            array_push($checkboxes, $improved_cultivar);
+        }
+        if(isset($landrace)) {
+            array_push($checkboxes, $landrace);
+        }
+        if(isset($other)) {
+            array_push($checkboxes, $other);
+        }
+        if(isset($lab_strain)) {
+            array_push($checkboxes, $lab_strain);
+        } 
+        if(isset($admixture_group)) {
+            array_push($checkboxes, $admixture_group);
+        }
+        if(isset($country)) {
+            array_push($checkboxes, $country);
+        }
+        if(isset($imputed)) {
+            array_push($checkboxes, $imputed);
+        }
+        if(isset($unimputed)) {
+            array_push($checkboxes, $unimputed);
+        }
+        
         // Construct sql then make query
         if ($organism == "Zmays") {
-            $sql = "
-            SELECT COUNT(IF(Improvement_Status = 'Improved', 1, null)) AS Improved_Cultivar, 
-            COUNT(IF(Improvement_Status = 'Landrace', 1, null)) AS Landrace, 
-            COUNT(IF(Improvement_Status = 'Other', 1, null)) AS Other, 
-            COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other') OR Improvement_Status IS NULL, 1, null)) AS Total, 
-            COUNT(IF(Imputation = '+', 1, null)) AS Imputed, 
-            COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, 
-            Gene, Position, Genotype, Genotype_with_Description 
+            $sql = "SELECT ";
+
+            if(in_array("Improved_Cultivar", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Improvement_Status = 'Improved', 1, null)) AS Improved_Cultivar, ";
+            }
+            if(in_array("Landrace", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Improvement_Status = 'Landrace', 1, null)) AS Landrace, ";
+            }
+            if(in_array("Other", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Improvement_Status = 'Other', 1, null)) AS Other, ";
+            }
+            $sql = $sql . "COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
+            if(in_array("Imputed", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Imputation = '+', 1, null)) AS Imputed, ";
+            }
+            if(in_array("Unimputed", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Imputation = '-', 1, null)) AS Unimputed,";
+            }
+
+            $sql = $sql . "Gene, Position, Genotype, Genotype_with_Description 
             FROM " . $db . "." . $dataset1 . " 
             WHERE (Gene IN ('";
             for ($i = 0; $i < count($gene_arr); $i++) {
@@ -127,14 +185,26 @@ class KBCToolsAlleleCatalogToolController extends Controller
             GROUP BY Gene, Position, Genotype, Genotype_with_Description 
             ORDER BY Gene, Position, Total DESC;";
         } else if ($organism == "Athaliana") {
-            $sql = "
-            SELECT COUNT(IF(Improvement_Status = 'Lab Strain', 1, null)) AS Lab_Strain, 
-            COUNT(IF(Improvement_Status = 'Admixture Group', 1, null)) AS Admixture_Group, 
-            COUNT(IF(Improvement_Status = 'Country', 1, null)) AS Country, 
-            COUNT(IF(Improvement_Status IN ('Lab Strain', 'Admixture Group', 'Country') OR Improvement_Status IS NULL, 1, null)) AS Total, 
-            COUNT(IF(Imputation = '+', 1, null)) AS Imputed, 
-            COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, 
-            Gene, Position, Genotype, Genotype_with_Description 
+            $sql = "SELECT ";
+
+            if(in_array("Lab_Strain", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Improvement_Status = 'Lab Strain', 1, null)) AS Lab_Strain, ";
+            }
+            if(in_array("Admixture_Group", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Improvement_Status = 'Admixture Group', 1, null)) AS Admixture_Group, ";
+            }
+            if(in_array("Country", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Improvement_Status = 'Country', 1, null)) AS Country, ";
+            }
+            $sql = $sql . "COUNT(IF(Improvement_Status IN ('Lab Strain', 'Admixture Group', 'Country') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
+            if(in_array("Imputed", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Imputation = '+', 1, null)) AS Imputed, ";
+            }
+            if(in_array("Unimputed", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, ";
+            }
+
+            $sql = $sql . "Gene, Position, Genotype, Genotype_with_Description 
             FROM " . $db . "." . $dataset1 . " 
             WHERE (Gene IN ('";
             for ($i = 0; $i < count($gene_arr); $i++) {
@@ -148,11 +218,16 @@ class KBCToolsAlleleCatalogToolController extends Controller
             GROUP BY Gene, Position, Genotype, Genotype_with_Description 
             ORDER BY Gene, Position, Total DESC;";
         } else {
-            $sql = "
-            SELECT COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other', 'Admixture Group', 'Lab Strain', 'Country') OR Improvement_Status IS NULL, 1, null)) AS Total, 
-            COUNT(IF(Imputation = '+', 1, null)) AS Imputed, 
-            COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, 
-            Gene, Position, Genotype, Genotype_with_Description 
+            $sql = "SELECT COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other', 'Admixture Group', 'Lab Strain', 'Country') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
+            
+            if(in_array("Imputed", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Imputation = '+', 1, null)) AS Imputed, ";
+            }
+            if(in_array("Unimputed", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, ";
+            }
+
+            $sql = $sql . "Gene, Position, Genotype, Genotype_with_Description 
             FROM " . $db . "." . $dataset1 . " 
             WHERE (Gene IN ('";
             for ($i = 0; $i < count($gene_arr); $i++) {
@@ -177,6 +252,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
             'dataset1' => $dataset1,
             'gene1' => $gene1,
             'result_arr' => $result_arr,
+            'checkboxes' => $checkboxes,
         ];
 
         // Return to view
@@ -227,6 +303,36 @@ class KBCToolsAlleleCatalogToolController extends Controller
                 AND Genotype_with_Description = '" . $genotypeWithDescription . "'
                 AND Improvement_Status LIKE '%other%' ORDER BY Accession;
             ";
+        } else if (preg_match("/lab.strain/i", strval($key))) {
+            $sql = "
+                SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+                Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                FROM " . $db . "." . $dataset . "
+                WHERE (Gene IN ('" . $gene . "'))
+                AND Position = '" . $position . "'
+                AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                AND Improvement_Status LIKE '%lab strain%' ORDER BY Accession;
+            ";
+        } else if (preg_match("/admixture.group/i", strval($key))) {
+            $sql = "
+                SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+                Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                FROM " . $db . "." . $dataset . "
+                WHERE (Gene IN ('" . $gene . "'))
+                AND Position = '" . $position . "'
+                AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                AND Improvement_Status LIKE '%admixture group%' ORDER BY Accession;
+            ";
+        } else if (preg_match("/country/i", strval($key))) {
+            $sql = "
+                SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+                Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                FROM " . $db . "." . $dataset . "
+                WHERE (Gene IN ('" . $gene . "'))
+                AND Position = '" . $position . "'
+                AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                AND Improvement_Status LIKE '%country%' ORDER BY Accession;
+            ";
         } else if (preg_match("/total/i", strval($key))) {
             $sql = "
                 SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
@@ -272,15 +378,21 @@ class KBCToolsAlleleCatalogToolController extends Controller
         $gene = $request->Gene;
         $dataset = $request->Dataset;
         $organism = $request->Organism;
+        $checkboxes = $request->Checkboxes;
 
         // Database
         $db = "KBC_" . $organism;
 
-        // Parse genes
+        // Parse genes and checkboxes
         if (is_string($gene)) {
             $gene_arr = preg_split("/[;, \n]+/", trim($gene));
         } elseif (is_array($gene)) {
             $gene_arr = $gene;
+        }
+        if (is_string($checkboxes)) {
+            $checkboxes = preg_split("/[;, \n]+/", trim($checkboxes));
+        } elseif (is_array($checkboxes)) {
+            $checkboxes = $checkboxes;
         }
         for ($i = 0; $i < count($gene_arr); $i++) {
             $gene_arr[$i] = trim($gene_arr[$i]);
@@ -288,14 +400,26 @@ class KBCToolsAlleleCatalogToolController extends Controller
 
         // Construct sql then make query
         if ($organism == "Zmays") {
-            $sql = "
-            SELECT COUNT(IF(Improvement_Status = 'Improved', 1, null)) AS Improved_Cultivar, 
-            COUNT(IF(Improvement_Status = 'Landrace', 1, null)) AS Landrace, 
-            COUNT(IF(Improvement_Status = 'Other', 1, null)) AS Other, 
-            COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other') OR Improvement_Status IS NULL, 1, null)) AS Total, 
-            COUNT(IF(Imputation = '+', 1, null)) AS Imputed, 
-            COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, 
-            Gene, Position, Genotype, Genotype_with_Description 
+            $sql = "SELECT ";
+
+            if(in_array("Improved_Cultivar", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Improvement_Status = 'Improved', 1, null)) AS Improved_Cultivar, ";
+            }
+            if(in_array("Landrace", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Improvement_Status = 'Landrace', 1, null)) AS Landrace, ";
+            }
+            if(in_array("Other", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Improvement_Status = 'Other', 1, null)) AS Other, ";
+            }
+            $sql = $sql . "COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
+            if(in_array("Imputed", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Imputation = '+', 1, null)) AS Imputed, ";
+            }
+            if(in_array("Unimputed", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Imputation = '-', 1, null)) AS Unimputed,";
+            }
+
+            $sql = $sql . "Gene, Position, Genotype, Genotype_with_Description 
             FROM " . $db . "." . $dataset . " 
             WHERE (Gene IN ('";
             for ($i = 0; $i < count($gene_arr); $i++) {
@@ -309,14 +433,26 @@ class KBCToolsAlleleCatalogToolController extends Controller
             GROUP BY Gene, Position, Genotype, Genotype_with_Description 
             ORDER BY Gene, Position, Total DESC;";
         } else if ($organism == "Athaliana") {
-            $sql = "
-            SELECT COUNT(IF(Improvement_Status = 'Lab Strain', 1, null)) AS Lab_Strain, 
-            COUNT(IF(Improvement_Status = 'Admixture Group', 1, null)) AS Admixture_Group, 
-            COUNT(IF(Improvement_Status = 'Country', 1, null)) AS Country, 
-            COUNT(IF(Improvement_Status IN ('Lab Strain', 'Admixture Group', 'Country') OR Improvement_Status IS NULL, 1, null)) AS Total, 
-            COUNT(IF(Imputation = '+', 1, null)) AS Imputed, 
-            COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, 
-            Gene, Position, Genotype, Genotype_with_Description 
+            $sql = "SELECT ";
+
+            if(in_array("Lab_Strain", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Improvement_Status = 'Lab Strain', 1, null)) AS Lab_Strain, ";
+            }
+            if(in_array("Admixture_Group", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Improvement_Status = 'Admixture Group', 1, null)) AS Admixture_Group, ";
+            }
+            if(in_array("Country", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Improvement_Status = 'Country', 1, null)) AS Country, ";
+            }
+            $sql = $sql . "COUNT(IF(Improvement_Status IN ('Lab Strain', 'Admixture Group', 'Country') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
+            if(in_array("Imputed", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Imputation = '+', 1, null)) AS Imputed, ";
+            }
+            if(in_array("Unimputed", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, ";
+            }
+
+            $sql = $sql . "Gene, Position, Genotype, Genotype_with_Description 
             FROM " . $db . "." . $dataset . " 
             WHERE (Gene IN ('";
             for ($i = 0; $i < count($gene_arr); $i++) {
@@ -330,11 +466,16 @@ class KBCToolsAlleleCatalogToolController extends Controller
             GROUP BY Gene, Position, Genotype, Genotype_with_Description 
             ORDER BY Gene, Position, Total DESC;";
         } else {
-            $sql = "
-            SELECT COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other', 'Admixture Group', 'Lab Strain', 'Country') OR Improvement_Status IS NULL, 1, null)) AS Total, 
-            COUNT(IF(Imputation = '+', 1, null)) AS Imputed, 
-            COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, 
-            Gene, Position, Genotype, Genotype_with_Description 
+            $sql = "SELECT COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other', 'Admixture Group', 'Lab Strain', 'Country') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
+            
+            if(in_array("Imputed", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Imputation = '+', 1, null)) AS Imputed, ";
+            }
+            if(in_array("Unimputed", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, ";
+            }
+
+            $sql = $sql . "Gene, Position, Genotype, Genotype_with_Description 
             FROM " . $db . "." . $dataset . " 
             WHERE (Gene IN ('";
             for ($i = 0; $i < count($gene_arr); $i++) {
@@ -360,6 +501,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
         $gene = $request->Gene;
         $dataset = $request->Dataset;
         $organism = $request->Organism;
+        $checkboxes = $request->Checkboxes;
 
         // Database
         $db = "KBC_" . $organism;
@@ -370,6 +512,11 @@ class KBCToolsAlleleCatalogToolController extends Controller
         } elseif (is_array($gene)) {
             $gene_arr = $gene;
         }
+        if (is_string($checkboxes)) {
+            $checkboxes = preg_split("/[;, \n]+/", trim($checkboxes));
+        } elseif (is_array($checkboxes)) {
+            $checkboxes = $checkboxes;
+        }
         for ($i = 0; $i < count($gene_arr); $i++) {
             $gene_arr[$i] = trim($gene_arr[$i]);
         }
@@ -378,7 +525,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
         $sql = "SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
         Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation
         FROM " . $db . "." . $dataset . "
-        WHERE (Gene IN ('";
+        WHERE ((Gene IN ('";
         for ($i = 0; $i < count($gene_arr); $i++) {
             if ($i < (count($gene_arr) - 1)) {
                 $sql = $sql . $gene_arr[$i] . "', '";
@@ -386,7 +533,18 @@ class KBCToolsAlleleCatalogToolController extends Controller
                 $sql = $sql . $gene_arr[$i];
             }
         }
-        $sql = $sql . "'));";
+        $sql = $sql . "')) AND (Improvement_Status IN ('";
+        for ($i = 0; $i < count($checkboxes); $i++) {
+            if ($i < (count($checkboxes) - 1)) {
+                $sql = $sql . str_replace('_', ' ', $checkboxes[$i]) . "', '";
+            } else {
+                $sql = $sql . str_replace('_', ' ', $checkboxes[$i]);
+            }
+        }
+        if(in_array("Improved_Cultivar", $checkboxes)) {
+            $sql = $sql . "', 'Improved";
+        }
+        $sql = $sql . "')));";
 
         $result_arr = DB::connection($db)->select($sql);
 
@@ -398,15 +556,21 @@ class KBCToolsAlleleCatalogToolController extends Controller
         $genes = $request->Genes;
         $dataset = $request->Dataset;
         $organism = $request->Organism;
+        $checkboxes = $request->Checkboxes;
 
         // Database
         $db = "KBC_" . $organism;
 
-        // Parse genes
+        // Parse genes and checkboxes
         if (is_string($genes)) {
             $gene_arr = preg_split("/[;, \n]+/", trim($genes));
         } elseif (is_array($genes)) {
             $gene_arr = $genes;
+        }
+        if (is_string($checkboxes)) {
+            $checkboxes = preg_split("/[;, \n]+/", trim($checkboxes));
+        } elseif (is_array($checkboxes)) {
+            $checkboxes = $checkboxes;
         }
         for ($i = 0; $i < count($gene_arr); $i++) {
             $gene_arr[$i] = trim($gene_arr[$i]);
@@ -414,14 +578,26 @@ class KBCToolsAlleleCatalogToolController extends Controller
 
         // Construct sql then make query
         if ($organism == "Zmays") {
-            $sql = "
-            SELECT COUNT(IF(Improvement_Status = 'Improved', 1, null)) AS Improved_Cultivar, 
-            COUNT(IF(Improvement_Status = 'Landrace', 1, null)) AS Landrace, 
-            COUNT(IF(Improvement_Status = 'Other', 1, null)) AS Other, 
-            COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other') OR Improvement_Status IS NULL, 1, null)) AS Total, 
-            COUNT(IF(Imputation = '+', 1, null)) AS Imputed, 
-            COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, 
-            Gene, Position, Genotype, Genotype_with_Description 
+            $sql = "SELECT ";
+
+            if(in_array("Improved_Cultivar", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Improvement_Status = 'Improved', 1, null)) AS Improved_Cultivar, ";
+            }
+            if(in_array("Landrace", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Improvement_Status = 'Landrace', 1, null)) AS Landrace, ";
+            }
+            if(in_array("Other", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Improvement_Status = 'Other', 1, null)) AS Other, ";
+            }
+            $sql = $sql . "COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
+            if(in_array("Imputed", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Imputation = '+', 1, null)) AS Imputed, ";
+            }
+            if(in_array("Unimputed", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Imputation = '-', 1, null)) AS Unimputed,";
+            }
+
+            $sql = $sql . "Gene, Position, Genotype, Genotype_with_Description 
             FROM " . $db . "." . $dataset . " 
             WHERE (Gene IN ('";
             for ($i = 0; $i < count($gene_arr); $i++) {
@@ -435,14 +611,26 @@ class KBCToolsAlleleCatalogToolController extends Controller
             GROUP BY Gene, Position, Genotype, Genotype_with_Description 
             ORDER BY Gene, Position, Total DESC;";
         } else if ($organism == "Athaliana") {
-            $sql = "
-            SELECT COUNT(IF(Improvement_Status = 'Lab Strain', 1, null)) AS Lab_Strain, 
-            COUNT(IF(Improvement_Status = 'Admixture Group', 1, null)) AS Admixture_Group, 
-            COUNT(IF(Improvement_Status = 'Country', 1, null)) AS Country, 
-            COUNT(IF(Improvement_Status IN ('Lab Strain', 'Admixture Group', 'Country') OR Improvement_Status IS NULL, 1, null)) AS Total, 
-            COUNT(IF(Imputation = '+', 1, null)) AS Imputed, 
-            COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, 
-            Gene, Position, Genotype, Genotype_with_Description 
+            $sql = "SELECT ";
+
+            if(in_array("Lab_Strain", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Improvement_Status = 'Lab Strain', 1, null)) AS Lab_Strain, ";
+            }
+            if(in_array("Admixture_Group", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Improvement_Status = 'Admixture Group', 1, null)) AS Admixture_Group, ";
+            }
+            if(in_array("Country", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Improvement_Status = 'Country', 1, null)) AS Country, ";
+            }
+            $sql = $sql . "COUNT(IF(Improvement_Status IN ('Lab Strain', 'Admixture Group', 'Country') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
+            if(in_array("Imputed", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Imputation = '+', 1, null)) AS Imputed, ";
+            }
+            if(in_array("Unimputed", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, ";
+            }
+
+            $sql = $sql . "Gene, Position, Genotype, Genotype_with_Description 
             FROM " . $db . "." . $dataset . " 
             WHERE (Gene IN ('";
             for ($i = 0; $i < count($gene_arr); $i++) {
@@ -456,11 +644,16 @@ class KBCToolsAlleleCatalogToolController extends Controller
             GROUP BY Gene, Position, Genotype, Genotype_with_Description 
             ORDER BY Gene, Position, Total DESC;";
         } else {
-            $sql = "
-            SELECT COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other', 'Admixture Group', 'Lab Strain', 'Country') OR Improvement_Status IS NULL, 1, null)) AS Total, 
-            COUNT(IF(Imputation = '+', 1, null)) AS Imputed, 
-            COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, 
-            Gene, Position, Genotype, Genotype_with_Description 
+            $sql = "SELECT COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other', 'Admixture Group', 'Lab Strain', 'Country') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
+            
+            if(in_array("Imputed", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Imputation = '+', 1, null)) AS Imputed, ";
+            }
+            if(in_array("Unimputed", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, ";
+            }
+
+            $sql = $sql . "Gene, Position, Genotype, Genotype_with_Description 
             FROM " . $db . "." . $dataset . " 
             WHERE (Gene IN ('";
             for ($i = 0; $i < count($gene_arr); $i++) {
@@ -486,6 +679,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
         $genes = $request->Genes;
         $dataset = $request->Dataset;
         $organism = $request->Organism;
+        $checkboxes = $request->Checkboxes;
 
         // Database
         $db = "KBC_" . $organism;
@@ -496,6 +690,11 @@ class KBCToolsAlleleCatalogToolController extends Controller
         } elseif (is_array($genes)) {
             $gene_arr = $genes;
         }
+        if (is_string($checkboxes)) {
+            $checkboxes = preg_split("/[;, \n]+/", trim($checkboxes));
+        } elseif (is_array($checkboxes)) {
+            $checkboxes = $checkboxes;
+        }
         for ($i = 0; $i < count($gene_arr); $i++) {
             $gene_arr[$i] = trim($gene_arr[$i]);
         }
@@ -504,7 +703,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
         $sql = "SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
         Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation
         FROM " . $db . "." . $dataset . "
-        WHERE (Gene IN ('";
+        WHERE ((Gene IN ('";
         for ($i = 0; $i < count($gene_arr); $i++) {
             if ($i < (count($gene_arr) - 1)) {
                 $sql = $sql . $gene_arr[$i] . "', '";
@@ -512,7 +711,18 @@ class KBCToolsAlleleCatalogToolController extends Controller
                 $sql = $sql . $gene_arr[$i];
             }
         }
-        $sql = $sql . "'));";
+        $sql = $sql . "')) AND (Improvement_Status IN ('";
+        for ($i = 0; $i < count($checkboxes); $i++) {
+            if ($i < (count($checkboxes) - 1)) {
+                $sql = $sql . str_replace('_', ' ', $checkboxes[$i]) . "', '";
+            } else {
+                $sql = $sql . str_replace('_', ' ', $checkboxes[$i]);
+            }
+        }
+        if(in_array("Improved_Cultivar", $checkboxes)) {
+            $sql = $sql . "', 'Improved";
+        }
+        $sql = $sql . "')));";
 
         $result_arr = DB::connection($db)->select($sql);
 
