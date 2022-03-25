@@ -21,7 +21,7 @@ $checkboxes = $info['checkboxes'];
 <table width="100%" cellspacing="14" cellpadding="14">
     <tr>
         <td width="50%" align="center" valign="top" style="border:1px solid #999999; padding:10px; background-color:#f8f8f8; text-align:left;">
-            <form action="{{ route('system.tools.AlleleCatalogTool.viewAllByGenes', ['organism'=>$organism]) }}" method="get">
+            <form action="{{ route('system.tools.AlleleCatalogTool.viewAllByGenes', ['organism'=>$organism]) }}" method="get" target="_blank">
                 <h2>Search By Gene Name</h2>
                 <br />
                 <label for="dataset1"><b>Dataset:</b></label>
@@ -55,7 +55,7 @@ $checkboxes = $info['checkboxes'];
             </form>
         </td>
         <td width="50%" align="center" valign="top" style="border:1px solid #999999; padding:10px; background-color:#f8f8f8; text-align:left;">
-            <form action="{{ route('system.tools.AlleleCatalogTool.viewAllByAccessionAndGene', ['organism'=>$organism]) }}" method="get">
+            <form action="{{ route('system.tools.AlleleCatalogTool.viewAllByAccessionAndGene', ['organism'=>$organism]) }}" method="get" target="_blank">
                 <h2>Search By Accession and Gene Name</h2>
                 <br />
                 <label for="dataset2"><b>Dataset:</b></label>

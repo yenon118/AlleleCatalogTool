@@ -6,4 +6,4 @@ cp -r /data/html/Prod/KBCommons_multi/public/system/home/AlleleCatalogTool/js /d
 
 grep -e "Allele Catalog" -e "AlleleCatalog" /data/html/Prod/KBCommons_multi/routes/web.php > /data/html/Prod/KBCommons_multi/resources/views/system/tools/AlleleCatalogTool/routes/web.php
 
-cp -r /data/html/Prod/KBCommons_multi/resources/views/system/tools/AlleleCatalogTool /data/yenc/projects/
+cp -r /data/html/Prod/KBCommons_multi/resources/views/system/tools/AlleleCatalogTool /home/chanye/projects/
