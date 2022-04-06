@@ -21,6 +21,7 @@ $exon_loss_variant_color_code = "#F26A55";
 $lost_color_code = "#F26A55";
 $gain_color_code = "#F26A55";
 $disruptive_color_code = "#F26A55";
+$conservative_color_code = "#F26A55";
 $splice_color_code = "#9EE85C";
 
 @endphp
@@ -121,6 +122,8 @@ $splice_color_code = "#9EE85C";
                             echo "<td id=\"pos__" . $segment_arr[$j]->Gene . "__" . $key . "__" . $j . "\" style=\"border:1px solid black; min-width:120px; background-color:" . $gain_color_code . "\">" . $genotypeWithDescriptionArray[$k] . "</td>";
                         } else if (preg_match("/disruptive/i", $genotypeWithDescriptionArray[$k])) {
                             echo "<td id=\"pos__" . $segment_arr[$j]->Gene . "__" . $key . "__" . $j . "\" style=\"border:1px solid black; min-width:120px; background-color:" . $disruptive_color_code . "\">" . $genotypeWithDescriptionArray[$k] . "</td>";
+                        } else if (preg_match("/conservative/i", $genotypeWithDescriptionArray[$k])) {
+                            echo "<td id=\"pos__" . $segment_arr[$j]->Gene . "__" . $key . "__" . $j . "\" style=\"border:1px solid black; min-width:120px; background-color:" . $conservative_color_code . "\">" . $genotypeWithDescriptionArray[$k] . "</td>";
                         } else if (preg_match("/splice/i", $genotypeWithDescriptionArray[$k])) {
                             echo "<td id=\"pos__" . $segment_arr[$j]->Gene . "__" . $key . "__" . $j . "\" style=\"border:1px solid black; min-width:120px; background-color:" . $splice_color_code . "\">" . $genotypeWithDescriptionArray[$k] . "</td>";
                         } else if (preg_match("/ref/i", $genotypeWithDescriptionArray[$k])) {

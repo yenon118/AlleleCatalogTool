@@ -22,7 +22,7 @@ $checkboxes = $info['checkboxes'];
     <tr>
         <td width="50%" align="center" valign="top" style="border:1px solid #999999; padding:10px; background-color:#f8f8f8; text-align:left;">
             <form action="{{ route('system.tools.AlleleCatalogTool.viewAllByGenes', ['organism'=>$organism]) }}" method="get" target="_blank">
-                <h2>Search By Gene Name</h2>
+                <h2>Search by Gene Names</h2>
                 <br />
                 <label for="dataset1"><b>Dataset:</b></label>
                 <select name="dataset1" id="dataset1">
@@ -32,7 +32,7 @@ $checkboxes = $info['checkboxes'];
                 </select>
                 <br />
                 <br />
-                <b>Gene name</b>
+                <b>Gene names</b>
                 <span style="font-size:10pt">
                     &nbsp;(eg
                     @foreach($gene_array as $gene)
@@ -44,9 +44,14 @@ $checkboxes = $info['checkboxes'];
                 <textarea id="gene1" name="gene1" rows="12" cols="40"></textarea>
                 <br /><br />
                 @foreach($checkboxes as $key => $checkbox)
+                @if ($checkbox === "Imputed" || $checkbox === "Unimputed")
+                <input type="checkbox" id="{{ $checkbox }}" name="{{ $checkbox }}" value="{{ $checkbox }}">
+                <label for="{{ $checkbox }}">{{ str_replace('_', ' ', $checkbox) }}</label>
+                @else
                 <input type="checkbox" id="{{ $checkbox }}" name="{{ $checkbox }}" value="{{ $checkbox }}" checked>
                 <label for="{{ $checkbox }}">{{ str_replace('_', ' ', $checkbox) }}</label>
-                @if ($key != 0 && $key % 3 === 0)
+                @endif
+                @if ($key != 0 && $key % 2 === 0)
                     <br />
                 @endif
                 @endforeach
@@ -56,7 +61,7 @@ $checkboxes = $info['checkboxes'];
         </td>
         <td width="50%" align="center" valign="top" style="border:1px solid #999999; padding:10px; background-color:#f8f8f8; text-align:left;">
             <form action="{{ route('system.tools.AlleleCatalogTool.viewAllByAccessionAndGene', ['organism'=>$organism]) }}" method="get" target="_blank">
-                <h2>Search By Accession and Gene Name</h2>
+                <h2>Search by Accessions and Gene Name</h2>
                 <br />
                 <label for="dataset2"><b>Dataset:</b></label>
                 <select name="dataset2" id="dataset2">
@@ -66,7 +71,7 @@ $checkboxes = $info['checkboxes'];
                 </select>
                 <br />
                 <br />
-                <b>Accession</b>
+                <b>Accessions</b>
                 <span style="font-size:10pt">
                     &nbsp;(eg
                     @foreach($accession_array as $accession)
