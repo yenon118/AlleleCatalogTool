@@ -45,8 +45,8 @@ $checkboxes = $info['checkboxes'];
                 <br /><br />
                 @foreach($checkboxes as $key => $checkbox)
                 @if ($checkbox === "Imputed" || $checkbox === "Unimputed")
-                <input type="checkbox" id="{{ $checkbox }}" name="{{ $checkbox }}" value="{{ $checkbox }}">
-                <label for="{{ $checkbox }}">{{ str_replace('_', ' ', $checkbox) }}</label>
+                <input type="checkbox" id="{{ $checkbox }}" name="{{ $checkbox }}" value="{{ $checkbox }}" hidden>
+                <label for="{{ $checkbox }}" hidden>{{ str_replace('_', ' ', $checkbox) }}</label>
                 @else
                 <input type="checkbox" id="{{ $checkbox }}" name="{{ $checkbox }}" value="{{ $checkbox }}" checked>
                 <label for="{{ $checkbox }}">{{ str_replace('_', ' ', $checkbox) }}</label>

@@ -21,7 +21,7 @@ $exon_loss_variant_color_code = "#F26A55";
 $lost_color_code = "#F26A55";
 $gain_color_code = "#F26A55";
 $disruptive_color_code = "#F26A55";
-$conservative_color_code = "#F26A55";
+$conservative_color_code = "#FF7F50";
 $splice_color_code = "#9EE85C";
 
 @endphp
@@ -57,6 +57,10 @@ $splice_color_code = "#9EE85C";
 
 
     @php
+    if (!isset($result_arr) || is_null($result_arr) || empty($result_arr)) {
+        echo "<p>No record found!!!</p>";
+    }
+
     for ($i = 0; $i < count($result_arr); $i++) {
         $segment_arr = $result_arr[array_keys($result_arr)[$i]];
 
@@ -151,12 +155,14 @@ $splice_color_code = "#9EE85C";
         echo "<br />";
     }
 
-    echo "<br/><br/>";
-    echo "<div style='margin-top:10px;' align='center'>";
-    echo "<button onclick=\"downloadAllCountsByMultipleGenes('" . $organism . "', '" . $dataset1 . "', '" . implode(";", $gene_arr) . "', '" . implode(";", $checkboxes) . "')\" style=\"margin-right:20px;\"> Download All (Accession Counts)</button>";
-    echo "<button onclick=\"downloadAllByMultipleGenes('" . $organism . "', '" . $dataset1 . "', '" . implode(";", $gene_arr) . "', '" . implode(";", $checkboxes) . "')\" style=\"margin-right:20px;\"> Download All (All Accessions)</button>";
-    echo "</div>";
-    echo "<br/><br/>";
+    if (isset($result_arr) && !is_null($result_arr) && !empty($result_arr)) {
+        echo "<br/><br/>";
+        echo "<div style='margin-top:10px;' align='center'>";
+        echo "<button onclick=\"downloadAllCountsByMultipleGenes('" . $organism . "', '" . $dataset1 . "', '" . implode(";", $gene_arr) . "', '" . implode(";", $checkboxes) . "')\" style=\"margin-right:20px;\"> Download All (Accession Counts)</button>";
+        echo "<button onclick=\"downloadAllByMultipleGenes('" . $organism . "', '" . $dataset1 . "', '" . implode(";", $gene_arr) . "', '" . implode(";", $checkboxes) . "')\" style=\"margin-right:20px;\"> Download All (All Accessions)</button>";
+        echo "</div>";
+        echo "<br/><br/>";
+    }
 
     @endphp
 

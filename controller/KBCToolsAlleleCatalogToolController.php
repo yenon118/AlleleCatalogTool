@@ -373,6 +373,67 @@ class KBCToolsAlleleCatalogToolController extends Controller
     }
 
 
+    // getImputationData
+    public function getImputationData(Request $request, $organism)
+    {
+        $dataset = $request->Dataset;
+        $accessions = $request->Accession;
+        $gene = $request->Gene;
+        $position = $request->Position;
+        $organism = $request->Organism;
+
+        // Database
+        $db = "KBC_" . $organism;
+
+        $dataset = $dataset . "_Imputation";
+
+        if (is_string($accessions)) {
+            $accession_arr = preg_split("/[;,\n]+/", trim($accessions));
+        } elseif (is_array($accessions)) {
+            $accession_arr = $accessions;
+        } else {
+            exit(0);
+        }
+
+        if (is_string($position)) {
+            $position_arr = preg_split("/[;,\n ]+/", trim($position));
+        } elseif (is_array($position)) {
+            $position_arr = $position;
+        } else {
+            exit(0);
+        }
+
+        $sql = "SELECT * FROM " . $db . "." . $dataset;
+        $sql = $sql . " WHERE (Gene = '" . $gene . "')";
+
+        $sql = $sql . " AND (Accession IN ('";
+        for ($i = 0; $i < count($accession_arr); $i++) {
+            if ($i < (count($accession_arr)-1)) {
+                $sql = $sql . $accession_arr[$i] . "', '";
+            } else {
+                $sql = $sql . $accession_arr[$i];
+            }
+        }
+        $sql = $sql . "'))";
+
+        $sql = $sql . " AND (Position IN (";
+        for ($i = 0; $i < count($position_arr); $i++) {
+            if ($i < (count($position_arr)-1)) {
+                $sql = $sql . $position_arr[$i] . ", ";
+            } else {
+                $sql = $sql . $position_arr[$i];
+            }
+        }
+        $sql = $sql . "))";
+
+        $sql = $sql . " ORDER BY Accession, Position;";
+
+        $result_arr = DB::connection($db)->select($sql);
+
+        return json_encode($result_arr);
+    }
+
+
     public function DownloadAllCountsByGene(Request $request, $organism)
     {
         $gene = $request->Gene;

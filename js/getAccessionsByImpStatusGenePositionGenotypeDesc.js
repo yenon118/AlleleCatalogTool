@@ -1,4 +1,4 @@
-function constructInfoTable(arr) {
+function constructInfoTable(arr, imp_arr) {
     let ref_color_code = "#D1D1D1";
     let missense_variant_color_code = "#7FC8F5";
     let frameshift_variant_color_code = "#F26A55";
@@ -6,6 +6,7 @@ function constructInfoTable(arr) {
     let lost_color_code = "#F26A55";
     let gain_color_code = "#F26A55";
     let disruptive_color_code = "#F26A55";
+    let conservative_color_code = "#FF7F50";
     let splice_color_code = "#9EE85C";
 
     // Put data into modal
@@ -46,9 +47,29 @@ function constructInfoTable(arr) {
             if (tr_keys[j] === "Genotype_with_Description") {
                 let genotypeWithDescriptionArray = String(arr[i][tr_keys[j]]).split(" ");
                 for (let k = 0; k < genotypeWithDescriptionArray.length; k++) {
+
+                    // Add imputation information
+                    if (imp_arr){
+                        if (imp_arr.length > 0) {
+                            for (let m = 0; m < imp_arr.length; m++) {
+                                if(imp_arr[m]["Accession"] === arr[i]["Accession"] && imp_arr[m]["Gene"] === arr[i]["Gene"] && parseInt(imp_arr[m]["Position"]) === parseInt(position_arr[k])) {
+                                    genotypeWithDescriptionArray[k] = String(genotypeWithDescriptionArray[k]) + "|+";
+                                }
+                            }
+                        }
+                    }
+
                     if (String(genotypeWithDescriptionArray[k]).search(/missense.variant/i) !== -1 && String(genotypeWithDescriptionArray[k]).search(/missense.variant/i) !== undefined) {
                         let temp_value_arr = String(genotypeWithDescriptionArray[k]).split('|');
-                        let temp_value = (temp_value_arr.length > 2) ? temp_value_arr[0] + "|" + temp_value_arr[2] : genotypeWithDescriptionArray[k];
+                        let temp_value = "";
+                        if (temp_value_arr.length > 2) {
+                            temp_value = temp_value_arr[0]
+                            for (let m = 2; m < temp_value_arr.length; m++) {
+                                temp_value = temp_value + "|" + temp_value_arr[m];
+                            }
+                        } else {
+                            temp_value = genotypeWithDescriptionArray[k];
+                        }
                         document.getElementById(modal_content_table_data_id).innerHTML += "<td style=\"border: 1px solid black;min-width:120px;text-align:center;background-color:" + missense_variant_color_code + "\">" + temp_value + "</td>";
                     } else if (String(genotypeWithDescriptionArray[k]).search(/frameshift/i) !== -1 && String(genotypeWithDescriptionArray[k]).search(/frameshift/i) !== undefined) {
                         document.getElementById(modal_content_table_data_id).innerHTML += "<td style=\"border: 1px solid black;min-width:120px;text-align:center;background-color:" + frameshift_variant_color_code + "\">" + genotypeWithDescriptionArray[k] + "</td>";
@@ -56,14 +77,32 @@ function constructInfoTable(arr) {
                         document.getElementById(modal_content_table_data_id).innerHTML += "<td style=\"border: 1px solid black;min-width:120px;text-align:center;background-color:" + exon_loss_variant_color_code + "\">" + genotypeWithDescriptionArray[k] + "</td>";
                     } else if (String(genotypeWithDescriptionArray[k]).search(/lost/i) !== -1 && String(genotypeWithDescriptionArray[k]).search(/lost/i) !== undefined) {
                         let temp_value_arr = String(genotypeWithDescriptionArray[k]).split('|');
-                        let temp_value = (temp_value_arr.length > 2) ? temp_value_arr[0] + "|" + temp_value_arr[2] : genotypeWithDescriptionArray[k];
+                        let temp_value = "";
+                        if (temp_value_arr.length > 2) {
+                            temp_value = temp_value_arr[0]
+                            for (let m = 2; m < temp_value_arr.length; m++) {
+                                temp_value = temp_value + "|" + temp_value_arr[m];
+                            }
+                        } else {
+                            temp_value = genotypeWithDescriptionArray[k];
+                        }
                         document.getElementById(modal_content_table_data_id).innerHTML += "<td style=\"border: 1px solid black;min-width:120px;text-align:center;background-color:" + lost_color_code + "\">" + temp_value + "</td>";
                     } else if (String(genotypeWithDescriptionArray[k]).search(/gain/i) !== -1 && String(genotypeWithDescriptionArray[k]).search(/gain/i) !== undefined) {
                         let temp_value_arr = String(genotypeWithDescriptionArray[k]).split('|');
-                        let temp_value = (temp_value_arr.length > 2) ? temp_value_arr[0] + "|" + temp_value_arr[2] : genotypeWithDescriptionArray[k];
+                        let temp_value = "";
+                        if (temp_value_arr.length > 2) {
+                            temp_value = temp_value_arr[0]
+                            for (let m = 2; m < temp_value_arr.length; m++) {
+                                temp_value = temp_value + "|" + temp_value_arr[m];
+                            }
+                        } else {
+                            temp_value = genotypeWithDescriptionArray[k];
+                        }
                         document.getElementById(modal_content_table_data_id).innerHTML += "<td style=\"border: 1px solid black;min-width:120px;text-align:center;background-color:" + gain_color_code + "\">" + temp_value + "</td>";
                     } else if (String(genotypeWithDescriptionArray[k]).search(/disruptive/i) !== -1 && String(genotypeWithDescriptionArray[k]).search(/disruptive/i) !== undefined) {
                         document.getElementById(modal_content_table_data_id).innerHTML += "<td style=\"border: 1px solid black;min-width:120px;text-align:center;background-color:" + disruptive_color_code + "\">" + genotypeWithDescriptionArray[k] + "</td>";
+                    } else if (String(genotypeWithDescriptionArray[k]).search(/conservative/i) !== -1 && String(genotypeWithDescriptionArray[k]).search(/conservative/i) !== undefined) {
+                        document.getElementById(modal_content_table_data_id).innerHTML += "<td style=\"border: 1px solid black;min-width:120px;text-align:center;background-color:" + conservative_color_code + "\">" + genotypeWithDescriptionArray[k] + "</td>";
                     } else if (String(genotypeWithDescriptionArray[k]).search(/splice/i) !== -1 && String(genotypeWithDescriptionArray[k]).search(/splice/i) !== undefined) {
                         document.getElementById(modal_content_table_data_id).innerHTML += "<td style=\"border: 1px solid black;min-width:120px;text-align:center;background-color:" + splice_color_code + "\">" + genotypeWithDescriptionArray[k] + "</td>";
                     } else if (String(genotypeWithDescriptionArray[k]).search(/ref/i) !== -1 && String(genotypeWithDescriptionArray[k]).search(/ref/i) !== undefined) {
@@ -103,10 +142,40 @@ function getAccessionsByImpStatusGenePositionGenotypeDesc(organism, dataset, key
             res = JSON.parse(response);
             // res = processAccessionCounts(res);
 
-            // Open modal
-            document.getElementById("info-modal").style.display = "block";
+            accession_array = []
 
-            constructInfoTable(res);
+            for (let i = 0; i < res.length; i++) {
+                accession_array.push(res[i]['Accession']);
+            }
+
+            $.ajax({
+                url: 'getImputationData/'+organism,
+                type: 'GET',
+                contentType: 'application/json',
+                data: {
+                    Dataset: dataset,
+                    Accession: accession_array,
+                    Gene: gene,
+                    Position: position,
+                    Organism: organism,
+                },
+                success: function (response) {
+                    imp_res = JSON.parse(response);
+
+                    // Open modal
+                    document.getElementById("info-modal").style.display = "block";
+
+                    constructInfoTable(res, imp_res);
+                }, 
+                error: function (xhr, status, error) {
+                    console.log('Error with code ' + xhr.status + ': ' + xhr.statusText);
+
+                    // Open modal
+                    document.getElementById("info-modal").style.display = "block";
+
+                    constructInfoTable(res, []);
+                }
+            });
 
         },
         error: function (xhr, status, error) {
