@@ -51,7 +51,7 @@ $checkboxes = $info['checkboxes'];
                 <input type="checkbox" id="{{ $checkbox }}" name="{{ $checkbox }}" value="{{ $checkbox }}" checked>
                 <label for="{{ $checkbox }}">{{ str_replace('_', ' ', $checkbox) }}</label>
                 @endif
-                @if ($key != 0 && $key % 2 === 0)
+                @if ($key != 0 && $key % 5 === 0)
                     <br />
                 @endif
                 @endforeach
