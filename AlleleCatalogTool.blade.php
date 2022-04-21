@@ -22,7 +22,7 @@ $checkboxes = $info['checkboxes'];
     <tr>
         <td width="50%" align="center" valign="top" style="border:1px solid #999999; padding:10px; background-color:#f8f8f8; text-align:left;">
             <form action="{{ route('system.tools.AlleleCatalogTool.viewAllByGenes', ['organism'=>$organism]) }}" method="get" target="_blank">
-                <h2>Search by Gene Names</h2>
+                <h2>Search by Gene IDs</h2>
                 <br />
                 <label for="dataset1"><b>Dataset:</b></label>
                 <select name="dataset1" id="dataset1">
@@ -32,7 +32,7 @@ $checkboxes = $info['checkboxes'];
                 </select>
                 <br />
                 <br />
-                <b>Gene names</b>
+                <b>Gene IDs</b><br />
                 <span style="font-size:10pt">
                     &nbsp;(eg
                     @foreach($gene_array as $gene)
@@ -61,7 +61,7 @@ $checkboxes = $info['checkboxes'];
         </td>
         <td width="50%" align="center" valign="top" style="border:1px solid #999999; padding:10px; background-color:#f8f8f8; text-align:left;">
             <form action="{{ route('system.tools.AlleleCatalogTool.viewAllByAccessionAndGene', ['organism'=>$organism]) }}" method="get" target="_blank">
-                <h2>Search by Accessions and Gene Name</h2>
+                <h2>Search by Accessions and Gene ID</h2>
                 <br />
                 <label for="dataset2"><b>Dataset:</b></label>
                 <select name="dataset2" id="dataset2">
@@ -82,7 +82,7 @@ $checkboxes = $info['checkboxes'];
                 <br />
                 <textarea id="accession" name="accession" rows="12" cols="40"></textarea>
                 <br /><br />
-                <b>Gene name</b><span style="font-size:10pt">&nbsp;(One gene name only; eg {{ $gene_array[0]->Gene }})</span>
+                <b>Gene ID</b><span style="font-size:10pt">&nbsp;(One gene name only; eg {{ $gene_array[0]->Gene }})</span>
                 <br />
                 <input type="text" id="gene2" name="gene2" size="40"></input>
                 <br /><br />
