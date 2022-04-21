@@ -92,6 +92,20 @@ $checkboxes = $info['checkboxes'];
     </tr>
 </table>
 
+@if ($organism === "Zmays")
+    <br />
+    <br />
+    <div style='margin-top:10px;' align='center'>
+        <button type="submit" onclick="window.open('https://data.cyverse.org/dav-anon/iplant/home/soykb/KBCAlleleCatalogTool/Zmays_Panzea_AGPv3_accession_file.csv')" style="margin-right:20px;">Download Accession Information</button>
+    </div>
+@elseif ($organism === "Athaliana")
+    <br />
+    <br />
+    <div style='margin-top:10px;' align='center'>
+        <button type="submit" onclick="window.open('https://data.cyverse.org/dav-anon/iplant/home/soykb/KBCAlleleCatalogTool/Arabidopsis_TAIR10_accession_file.csv')" style="margin-right:20px;">Download Accession Information</button>
+    </div>
+@endif
+
 @endsection
 
 

@@ -47,7 +47,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
         if ($organism == "Zmays") {
             $checkboxes = array("Improved_Cultivar", "Landrace", "Other", "Imputed", "Unimputed");
         } elseif ($organism == "Athaliana") {
-            $checkboxes = array("North", "Central", "South", "Asia", "Other", "Imputed", "Unimputed");
+            $checkboxes = array("North", "Central", "South", "East", "Other", "Imputed", "Unimputed");
         } else {
             $checkboxes = array("Imputed", "Unimputed");
         }
@@ -114,7 +114,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
         $north = $request->North;
         $central = $request->Central;
         $south = $request->South;
-        $asia = $request->Asia;
+        $east = $request->East;
         $imputed = $request->Imputed;
         $unimputed = $request->Unimputed;
 
@@ -144,8 +144,8 @@ class KBCToolsAlleleCatalogToolController extends Controller
         if(isset($south)) {
             array_push($checkboxes, $south);
         }
-        if(isset($asia)) {
-            array_push($checkboxes, $asia);
+        if(isset($east)) {
+            array_push($checkboxes, $east);
         }
         if(isset($imputed)) {
             array_push($checkboxes, $imputed);
@@ -200,13 +200,13 @@ class KBCToolsAlleleCatalogToolController extends Controller
             if(in_array("South", $checkboxes)) {
                 $sql = $sql . "COUNT(IF(Improvement_Status = 'South', 1, null)) AS South, ";
             }
-            if(in_array("Asia", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'Asia', 1, null)) AS Asia, ";
+            if(in_array("East", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Improvement_Status = 'East', 1, null)) AS East, ";
             }
             if(in_array("Other", $checkboxes)) {
                 $sql = $sql . "COUNT(IF(Improvement_Status = 'Other', 1, null)) AS Other, ";
             }
-            $sql = $sql . "COUNT(IF(Improvement_Status IN ('North', 'Central', 'South', 'Asia', 'Other') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
+            $sql = $sql . "COUNT(IF(Improvement_Status IN ('North', 'Central', 'South', 'East', 'Other') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
             if(in_array("Imputed", $checkboxes)) {
                 $sql = $sql . "COUNT(IF(Imputation = '+', 1, null)) AS Imputed, ";
             }
@@ -228,7 +228,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
             GROUP BY Gene, Position, Genotype, Genotype_with_Description 
             ORDER BY Gene, Position, Total DESC;";
         } else {
-            $sql = "SELECT COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other', 'North', 'Central', 'South', 'Asia') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
+            $sql = "SELECT COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other', 'North', 'Central', 'South', 'East') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
             
             if(in_array("Imputed", $checkboxes)) {
                 $sql = $sql . "COUNT(IF(Imputation = '+', 1, null)) AS Imputed, ";
@@ -283,110 +283,260 @@ class KBCToolsAlleleCatalogToolController extends Controller
         // Database
         $db = "KBC_" . $organism;
 
-        if (preg_match("/improved.cultivar/i", strval($key))) {
-            $sql = "
-                SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
-                Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                FROM " . $db . "." . $dataset . "
-                WHERE (Gene IN ('" . $gene . "'))
-                AND Position = '" . $position . "'
-                AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                AND Improvement_Status LIKE '%improved%' ORDER BY Accession;
-            ";
-        } else if (preg_match("/landrace/i", strval($key))) {
-            $sql = "
-                SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
-                Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                FROM " . $db . "." . $dataset . "
-                WHERE (Gene IN ('" . $gene . "'))
-                AND Position = '" . $position . "'
-                AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                AND Improvement_Status LIKE '%landrace%' ORDER BY Accession;
-            ";
-        } else if (preg_match("/other/i", strval($key))) {
-            $sql = "
-                SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
-                Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                FROM " . $db . "." . $dataset . "
-                WHERE (Gene IN ('" . $gene . "'))
-                AND Position = '" . $position . "'
-                AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                AND Improvement_Status LIKE '%other%' ORDER BY Accession;
-            ";
-        } else if (preg_match("/north/i", strval($key))) {
-            $sql = "
-                SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
-                Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                FROM " . $db . "." . $dataset . "
-                WHERE (Gene IN ('" . $gene . "'))
-                AND Position = '" . $position . "'
-                AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                AND Improvement_Status LIKE '%north%' ORDER BY Accession;
-            ";
-        } else if (preg_match("/central/i", strval($key))) {
-            $sql = "
-                SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
-                Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                FROM " . $db . "." . $dataset . "
-                WHERE (Gene IN ('" . $gene . "'))
-                AND Position = '" . $position . "'
-                AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                AND Improvement_Status LIKE '%central%' ORDER BY Accession;
-            ";
-        } else if (preg_match("/south/i", strval($key))) {
-            $sql = "
-                SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
-                Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                FROM " . $db . "." . $dataset . "
-                WHERE (Gene IN ('" . $gene . "'))
-                AND Position = '" . $position . "'
-                AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                AND Improvement_Status LIKE '%south%' ORDER BY Accession;
-            ";
-        } else if (preg_match("/asia/i", strval($key))) {
-            $sql = "
-                SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
-                Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                FROM " . $db . "." . $dataset . "
-                WHERE (Gene IN ('" . $gene . "'))
-                AND Position = '" . $position . "'
-                AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                AND Improvement_Status LIKE '%asia%' ORDER BY Accession;
-            ";
-        } else if (preg_match("/total/i", strval($key))) {
-            $sql = "
-                SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
-                Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                FROM " . $db . "." . $dataset . "
-                WHERE (Gene IN ('" . $gene . "'))
-                AND Position = '" . $position . "'
-                AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                ORDER BY Accession;
-            ";
-        } else if (preg_match("/unimputed/i", strval($key))) {
-            $sql = "
-                SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
-                Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                FROM " . $db . "." . $dataset . "
-                WHERE (Gene IN ('" . $gene . "'))
-                AND Position = '" . $position . "'
-                AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                AND Imputation = '-'
-                ORDER BY Accession;
-            ";
-        } else if (preg_match("/imputed/i", strval($key))) {
-            $sql = "
-                SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
-                Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                FROM " . $db . "." . $dataset . "
-                WHERE (Gene IN ('" . $gene . "'))
-                AND Position = '" . $position . "'
-                AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                AND Imputation = '+'
-                ORDER BY Accession;
-            ";
+        if ($organism == "Zmays") {
+            if (preg_match("/improved.cultivar/i", strval($key))) {
+                $sql = "
+                    SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                    FROM " . $db . "." . $dataset . "
+                    WHERE (Gene IN ('" . $gene . "'))
+                    AND Position = '" . $position . "'
+                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                    AND Improvement_Status LIKE '%improved%' ORDER BY Accession;
+                ";
+            } else if (preg_match("/landrace/i", strval($key))) {
+                $sql = "
+                    SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                    FROM " . $db . "." . $dataset . "
+                    WHERE (Gene IN ('" . $gene . "'))
+                    AND Position = '" . $position . "'
+                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                    AND Improvement_Status LIKE '%landrace%' ORDER BY Accession;
+                ";
+            } else if (preg_match("/other/i", strval($key))) {
+                $sql = "
+                    SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                    FROM " . $db . "." . $dataset . "
+                    WHERE (Gene IN ('" . $gene . "'))
+                    AND Position = '" . $position . "'
+                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                    AND Improvement_Status LIKE '%other%' ORDER BY Accession;
+                ";
+            } else if (preg_match("/total/i", strval($key))) {
+                $sql = "
+                    SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                    FROM " . $db . "." . $dataset . "
+                    WHERE (Gene IN ('" . $gene . "'))
+                    AND Position = '" . $position . "'
+                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                    ORDER BY Accession;
+                ";
+            } else if (preg_match("/unimputed/i", strval($key))) {
+                $sql = "
+                    SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                    FROM " . $db . "." . $dataset . "
+                    WHERE (Gene IN ('" . $gene . "'))
+                    AND Position = '" . $position . "'
+                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                    AND Imputation = '-'
+                    ORDER BY Accession;
+                ";
+            } else if (preg_match("/imputed/i", strval($key))) {
+                $sql = "
+                    SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                    FROM " . $db . "." . $dataset . "
+                    WHERE (Gene IN ('" . $gene . "'))
+                    AND Position = '" . $position . "'
+                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                    AND Imputation = '+'
+                    ORDER BY Accession;
+                ";
+            }
+        } else if ($organism == "Athaliana") {
+            if (preg_match("/other/i", strval($key))) {
+                $sql = "
+                    SELECT Admixture_Group, Improvement_Status AS `Group`, Country_Code3 AS Country_Code, Country, State, Latitude, Longitude,
+                    Name, Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                    FROM " . $db . "." . $dataset . "
+                    WHERE (Gene IN ('" . $gene . "'))
+                    AND Position = '" . $position . "'
+                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                    AND Improvement_Status LIKE '%other%' ORDER BY Accession;
+                ";
+            } else if (preg_match("/north/i", strval($key))) {
+                $sql = "
+                    SELECT Admixture_Group, Improvement_Status AS `Group`, Country_Code3 AS Country_Code, Country, State, Latitude, Longitude,
+                    Name, Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                    FROM " . $db . "." . $dataset . "
+                    WHERE (Gene IN ('" . $gene . "'))
+                    AND Position = '" . $position . "'
+                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                    AND Improvement_Status LIKE '%north%' ORDER BY Accession;
+                ";
+            } else if (preg_match("/central/i", strval($key))) {
+                $sql = "
+                    SELECT Admixture_Group, Improvement_Status AS `Group`, Country_Code3 AS Country_Code, Country, State, Latitude, Longitude,
+                    Name, Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                    FROM " . $db . "." . $dataset . "
+                    WHERE (Gene IN ('" . $gene . "'))
+                    AND Position = '" . $position . "'
+                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                    AND Improvement_Status LIKE '%central%' ORDER BY Accession;
+                ";
+            } else if (preg_match("/south/i", strval($key))) {
+                $sql = "
+                    SELECT Admixture_Group, Improvement_Status AS `Group`, Country_Code3 AS Country_Code, Country, State, Latitude, Longitude,
+                    Name, Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                    FROM " . $db . "." . $dataset . "
+                    WHERE (Gene IN ('" . $gene . "'))
+                    AND Position = '" . $position . "'
+                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                    AND Improvement_Status LIKE '%south%' ORDER BY Accession;
+                ";
+            } else if (preg_match("/east/i", strval($key))) {
+                $sql = "
+                    SELECT Admixture_Group, Improvement_Status AS `Group`, Country_Code3 AS Country_Code, Country, State, Latitude, Longitude,
+                    Name, Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                    FROM " . $db . "." . $dataset . "
+                    WHERE (Gene IN ('" . $gene . "'))
+                    AND Position = '" . $position . "'
+                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                    AND Improvement_Status LIKE '%east%' ORDER BY Accession;
+                ";
+            } else if (preg_match("/total/i", strval($key))) {
+                $sql = "
+                    SELECT Admixture_Group, Improvement_Status AS `Group`, Country_Code3 AS Country_Code, Country, State, Latitude, Longitude,
+                    Name, Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                    FROM " . $db . "." . $dataset . "
+                    WHERE (Gene IN ('" . $gene . "'))
+                    AND Position = '" . $position . "'
+                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                    ORDER BY Accession;
+                ";
+            } else if (preg_match("/unimputed/i", strval($key))) {
+                $sql = "
+                    SELECT Admixture_Group, Improvement_Status AS `Group`, Country_Code3 AS Country_Code, Country, State, Latitude, Longitude,
+                    Name, Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                    FROM " . $db . "." . $dataset . "
+                    WHERE (Gene IN ('" . $gene . "'))
+                    AND Position = '" . $position . "'
+                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                    AND Imputation = '-'
+                    ORDER BY Accession;
+                ";
+            } else if (preg_match("/imputed/i", strval($key))) {
+                $sql = "
+                    SELECT Admixture_Group, Improvement_Status AS `Group`, Country_Code3 AS Country_Code, Country, State, Latitude, Longitude,
+                    Name, Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                    FROM " . $db . "." . $dataset . "
+                    WHERE (Gene IN ('" . $gene . "'))
+                    AND Position = '" . $position . "'
+                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                    AND Imputation = '+'
+                    ORDER BY Accession;
+                ";
+            }
+        } else {
+            if (preg_match("/improved.cultivar/i", strval($key))) {
+                $sql = "
+                    SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                    FROM " . $db . "." . $dataset . "
+                    WHERE (Gene IN ('" . $gene . "'))
+                    AND Position = '" . $position . "'
+                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                    AND Improvement_Status LIKE '%improved%' ORDER BY Accession;
+                ";
+            } else if (preg_match("/landrace/i", strval($key))) {
+                $sql = "
+                    SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                    FROM " . $db . "." . $dataset . "
+                    WHERE (Gene IN ('" . $gene . "'))
+                    AND Position = '" . $position . "'
+                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                    AND Improvement_Status LIKE '%landrace%' ORDER BY Accession;
+                ";
+            } else if (preg_match("/other/i", strval($key))) {
+                $sql = "
+                    SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                    FROM " . $db . "." . $dataset . "
+                    WHERE (Gene IN ('" . $gene . "'))
+                    AND Position = '" . $position . "'
+                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                    AND Improvement_Status LIKE '%other%' ORDER BY Accession;
+                ";
+            } else if (preg_match("/north/i", strval($key))) {
+                $sql = "
+                    SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                    FROM " . $db . "." . $dataset . "
+                    WHERE (Gene IN ('" . $gene . "'))
+                    AND Position = '" . $position . "'
+                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                    AND Improvement_Status LIKE '%north%' ORDER BY Accession;
+                ";
+            } else if (preg_match("/central/i", strval($key))) {
+                $sql = "
+                    SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                    FROM " . $db . "." . $dataset . "
+                    WHERE (Gene IN ('" . $gene . "'))
+                    AND Position = '" . $position . "'
+                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                    AND Improvement_Status LIKE '%central%' ORDER BY Accession;
+                ";
+            } else if (preg_match("/south/i", strval($key))) {
+                $sql = "
+                    SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                    FROM " . $db . "." . $dataset . "
+                    WHERE (Gene IN ('" . $gene . "'))
+                    AND Position = '" . $position . "'
+                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                    AND Improvement_Status LIKE '%south%' ORDER BY Accession;
+                ";
+            } else if (preg_match("/east/i", strval($key))) {
+                $sql = "
+                    SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                    FROM " . $db . "." . $dataset . "
+                    WHERE (Gene IN ('" . $gene . "'))
+                    AND Position = '" . $position . "'
+                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                    AND Improvement_Status LIKE '%east%' ORDER BY Accession;
+                ";
+            } else if (preg_match("/total/i", strval($key))) {
+                $sql = "
+                    SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                    FROM " . $db . "." . $dataset . "
+                    WHERE (Gene IN ('" . $gene . "'))
+                    AND Position = '" . $position . "'
+                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                    ORDER BY Accession;
+                ";
+            } else if (preg_match("/unimputed/i", strval($key))) {
+                $sql = "
+                    SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                    FROM " . $db . "." . $dataset . "
+                    WHERE (Gene IN ('" . $gene . "'))
+                    AND Position = '" . $position . "'
+                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                    AND Imputation = '-'
+                    ORDER BY Accession;
+                ";
+            } else if (preg_match("/imputed/i", strval($key))) {
+                $sql = "
+                    SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+                    FROM " . $db . "." . $dataset . "
+                    WHERE (Gene IN ('" . $gene . "'))
+                    AND Position = '" . $position . "'
+                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
+                    AND Imputation = '+'
+                    ORDER BY Accession;
+                ";
+            }
         }
-
+        
         $result_arr = DB::connection($db)->select($sql);
 
         return json_encode($result_arr);
@@ -525,13 +675,13 @@ class KBCToolsAlleleCatalogToolController extends Controller
             if(in_array("South", $checkboxes)) {
                 $sql = $sql . "COUNT(IF(Improvement_Status = 'South', 1, null)) AS South, ";
             }
-            if(in_array("Asia", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'Asia', 1, null)) AS Asia, ";
+            if(in_array("East", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Improvement_Status = 'East', 1, null)) AS East, ";
             }
             if(in_array("Other", $checkboxes)) {
                 $sql = $sql . "COUNT(IF(Improvement_Status = 'Other', 1, null)) AS Other, ";
             }
-            $sql = $sql . "COUNT(IF(Improvement_Status IN ('North', 'Central', 'South', 'Asia', 'Other') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
+            $sql = $sql . "COUNT(IF(Improvement_Status IN ('North', 'Central', 'South', 'East', 'Other') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
             if(in_array("Imputed", $checkboxes)) {
                 $sql = $sql . "COUNT(IF(Imputation = '+', 1, null)) AS Imputed, ";
             }
@@ -553,7 +703,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
             GROUP BY Gene, Position, Genotype, Genotype_with_Description 
             ORDER BY Gene, Position, Total DESC;";
         } else {
-            $sql = "SELECT COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other', 'North', 'Central', 'South', 'Asia') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
+            $sql = "SELECT COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other', 'North', 'Central', 'South', 'East') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
             
             if(in_array("Imputed", $checkboxes)) {
                 $sql = $sql . "COUNT(IF(Imputation = '+', 1, null)) AS Imputed, ";
@@ -612,18 +762,46 @@ class KBCToolsAlleleCatalogToolController extends Controller
         }
 
         // Construct sql then make query
-        $sql = "SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
-        Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation
-        FROM " . $db . "." . $dataset . "
-        WHERE ((Gene IN ('";
-        for ($i = 0; $i < count($gene_arr); $i++) {
-            if ($i < (count($gene_arr) - 1)) {
-                $sql = $sql . $gene_arr[$i] . "', '";
-            } else {
-                $sql = $sql . $gene_arr[$i];
+        if ($organism == "Zmays") {
+            $sql = "SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+            Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation
+            FROM " . $db . "." . $dataset . "
+            WHERE ((Gene IN ('";
+            for ($i = 0; $i < count($gene_arr); $i++) {
+                if ($i < (count($gene_arr) - 1)) {
+                    $sql = $sql . $gene_arr[$i] . "', '";
+                } else {
+                    $sql = $sql . $gene_arr[$i];
+                }
             }
+            $sql = $sql . "')));";
+        } else if ($organism == "Athaliana") {
+            $sql = "SELECT Admixture_Group, Improvement_Status AS `Group`, Country_Code3 AS Country_Code, Country, State, 
+            Latitude, Longitude, Name, Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+            FROM " . $db . "." . $dataset . "
+            WHERE ((Gene IN ('";
+            for ($i = 0; $i < count($gene_arr); $i++) {
+                if ($i < (count($gene_arr) - 1)) {
+                    $sql = $sql . $gene_arr[$i] . "', '";
+                } else {
+                    $sql = $sql . $gene_arr[$i];
+                }
+            }
+            $sql = $sql . "')));";
+        } else {
+            $sql = "SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+            Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation
+            FROM " . $db . "." . $dataset . "
+            WHERE ((Gene IN ('";
+            for ($i = 0; $i < count($gene_arr); $i++) {
+                if ($i < (count($gene_arr) - 1)) {
+                    $sql = $sql . $gene_arr[$i] . "', '";
+                } else {
+                    $sql = $sql . $gene_arr[$i];
+                }
+            }
+            $sql = $sql . "')));";
         }
-        $sql = $sql . "')));";
 
         $result_arr = DB::connection($db)->select($sql);
 
@@ -701,13 +879,13 @@ class KBCToolsAlleleCatalogToolController extends Controller
             if(in_array("South", $checkboxes)) {
                 $sql = $sql . "COUNT(IF(Improvement_Status = 'South', 1, null)) AS South, ";
             }
-            if(in_array("Asia", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'Asia', 1, null)) AS Asia, ";
+            if(in_array("East", $checkboxes)) {
+                $sql = $sql . "COUNT(IF(Improvement_Status = 'East', 1, null)) AS East, ";
             }
             if(in_array("Other", $checkboxes)) {
                 $sql = $sql . "COUNT(IF(Improvement_Status = 'Other', 1, null)) AS Other, ";
             }
-            $sql = $sql . "COUNT(IF(Improvement_Status IN ('North', 'Central', 'South', 'Asia', 'Other') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
+            $sql = $sql . "COUNT(IF(Improvement_Status IN ('North', 'Central', 'South', 'East', 'Other') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
             if(in_array("Imputed", $checkboxes)) {
                 $sql = $sql . "COUNT(IF(Imputation = '+', 1, null)) AS Imputed, ";
             }
@@ -729,7 +907,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
             GROUP BY Gene, Position, Genotype, Genotype_with_Description 
             ORDER BY Gene, Position, Total DESC;";
         } else {
-            $sql = "SELECT COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other', 'North', 'Central', 'South', 'Asia') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
+            $sql = "SELECT COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other', 'North', 'Central', 'South', 'East') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
             
             if(in_array("Imputed", $checkboxes)) {
                 $sql = $sql . "COUNT(IF(Imputation = '+', 1, null)) AS Imputed, ";
@@ -788,18 +966,46 @@ class KBCToolsAlleleCatalogToolController extends Controller
         }
 
         // Construct sql then make query
-        $sql = "SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
-        Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation
-        FROM " . $db . "." . $dataset . "
-        WHERE ((Gene IN ('";
-        for ($i = 0; $i < count($gene_arr); $i++) {
-            if ($i < (count($gene_arr) - 1)) {
-                $sql = $sql . $gene_arr[$i] . "', '";
-            } else {
-                $sql = $sql . $gene_arr[$i];
+        if ($organism == "Zmays") {
+            $sql = "SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+            Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation
+            FROM " . $db . "." . $dataset . "
+            WHERE ((Gene IN ('";
+            for ($i = 0; $i < count($gene_arr); $i++) {
+                if ($i < (count($gene_arr) - 1)) {
+                    $sql = $sql . $gene_arr[$i] . "', '";
+                } else {
+                    $sql = $sql . $gene_arr[$i];
+                }
             }
+            $sql = $sql . "')));";
+        } else if ($organism == "Athaliana") {
+            $sql = "SELECT Admixture_Group, Improvement_Status AS `Group`, Country_Code3 AS Country_Code, Country, State, 
+            Latitude, Longitude, Name, Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+            FROM " . $db . "." . $dataset . "
+            WHERE ((Gene IN ('";
+            for ($i = 0; $i < count($gene_arr); $i++) {
+                if ($i < (count($gene_arr) - 1)) {
+                    $sql = $sql . $gene_arr[$i] . "', '";
+                } else {
+                    $sql = $sql . $gene_arr[$i];
+                }
+            }
+            $sql = $sql . "')));";
+        } else {
+            $sql = "SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+            Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation
+            FROM " . $db . "." . $dataset . "
+            WHERE ((Gene IN ('";
+            for ($i = 0; $i < count($gene_arr); $i++) {
+                if ($i < (count($gene_arr) - 1)) {
+                    $sql = $sql . $gene_arr[$i] . "', '";
+                } else {
+                    $sql = $sql . $gene_arr[$i];
+                }
+            }
+            $sql = $sql . "')));";
         }
-        $sql = $sql . "')));";
 
         $result_arr = DB::connection($db)->select($sql);
 
@@ -825,21 +1031,49 @@ class KBCToolsAlleleCatalogToolController extends Controller
         }
 
         // Construct sql then make query
-        $sql = "
-        SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
-        Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-        FROM " . $db . "." . $dataset2 .
-            " WHERE (Gene IN ( '" . $gene2 . "' )) AND (Accession IN ('";
-
-        for ($i = 0; $i < count($accession_arr); $i++) {
-            if ($i < (count($accession_arr) - 1)) {
-                $sql = $sql . $accession_arr[$i] . "', '";
-            } else {
-                $sql = $sql . $accession_arr[$i];
+        if ($organism == "Zmays") {
+            $sql = "
+            SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+            Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+            FROM " . $db . "." . $dataset2 .
+                " WHERE (Gene IN ( '" . $gene2 . "' )) AND (Accession IN ('";
+            for ($i = 0; $i < count($accession_arr); $i++) {
+                if ($i < (count($accession_arr) - 1)) {
+                    $sql = $sql . $accession_arr[$i] . "', '";
+                } else {
+                    $sql = $sql . $accession_arr[$i];
+                }
             }
+            $sql = $sql . "'));";
+        } else if ($organism == "Athaliana") {
+            $sql = "
+            SELECT Admixture_Group, Improvement_Status AS `Group`, Country_Code3 AS Country_Code, Country, State, 
+            Latitude, Longitude, Name, Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+            FROM " . $db . "." . $dataset2 .
+                " WHERE (Gene IN ( '" . $gene2 . "' )) AND (Accession IN ('";
+            for ($i = 0; $i < count($accession_arr); $i++) {
+                if ($i < (count($accession_arr) - 1)) {
+                    $sql = $sql . $accession_arr[$i] . "', '";
+                } else {
+                    $sql = $sql . $accession_arr[$i];
+                }
+            }
+            $sql = $sql . "'));";
+        } else {
+            $sql = "
+            SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+            Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+            FROM " . $db . "." . $dataset2 .
+                " WHERE (Gene IN ( '" . $gene2 . "' )) AND (Accession IN ('";
+            for ($i = 0; $i < count($accession_arr); $i++) {
+                if ($i < (count($accession_arr) - 1)) {
+                    $sql = $sql . $accession_arr[$i] . "', '";
+                } else {
+                    $sql = $sql . $accession_arr[$i];
+                }
+            }
+            $sql = $sql . "'));";
         }
-
-        $sql = $sql . "'));";
 
         $result_arr = DB::connection($db)->select($sql);
 
@@ -874,21 +1108,49 @@ class KBCToolsAlleleCatalogToolController extends Controller
         }
 
         // Construct sql then make query
-        $sql = "
-        SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
-        Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-        FROM " . $db . "." . $dataset .
-            " WHERE (Gene IN ( '" . $gene . "' )) AND (Accession IN ('";
-
-        for ($i = 0; $i < count($accession_arr); $i++) {
-            if ($i < (count($accession_arr) - 1)) {
-                $sql = $sql . $accession_arr[$i] . "', '";
-            } else {
-                $sql = $sql . $accession_arr[$i];
+        if ($organism == "Zmays") {
+            $sql = "
+            SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+            Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+            FROM " . $db . "." . $dataset .
+                " WHERE (Gene IN ( '" . $gene . "' )) AND (Accession IN ('";
+            for ($i = 0; $i < count($accession_arr); $i++) {
+                if ($i < (count($accession_arr) - 1)) {
+                    $sql = $sql . $accession_arr[$i] . "', '";
+                } else {
+                    $sql = $sql . $accession_arr[$i];
+                }
             }
+            $sql = $sql . "'));";
+        } else if ($organism == "Athaliana") {
+            $sql = "
+            SELECT Admixture_Group, Improvement_Status AS `Group`, Country_Code3 AS Country_Code, Country, State, 
+            Latitude, Longitude, Name, Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+            FROM " . $db . "." . $dataset .
+                " WHERE (Gene IN ( '" . $gene . "' )) AND (Accession IN ('";
+            for ($i = 0; $i < count($accession_arr); $i++) {
+                if ($i < (count($accession_arr) - 1)) {
+                    $sql = $sql . $accession_arr[$i] . "', '";
+                } else {
+                    $sql = $sql . $accession_arr[$i];
+                }
+            }
+            $sql = $sql . "'));";
+        } else {
+            $sql = "
+            SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
+            Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
+            FROM " . $db . "." . $dataset .
+                " WHERE (Gene IN ( '" . $gene . "' )) AND (Accession IN ('";
+            for ($i = 0; $i < count($accession_arr); $i++) {
+                if ($i < (count($accession_arr) - 1)) {
+                    $sql = $sql . $accession_arr[$i] . "', '";
+                } else {
+                    $sql = $sql . $accession_arr[$i];
+                }
+            }
+            $sql = $sql . "'));";
         }
-
-        $sql = $sql . "'));";
 
         $result_arr = DB::connection($db)->select($sql);
 
