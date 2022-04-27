@@ -6,6 +6,7 @@ $dataset = $info['dataset2'];
 $accession = $info['accession'];
 $gene = $info['gene2'];
 $result_arr = $info['result_arr'];
+$imp_result_arr = $info['imp_result_arr'];
 
 
 $accession_arr = preg_split("/[;,\n]+/", $accession);
@@ -88,9 +89,29 @@ $splice_color_code = "#9EE85C";
                     if (strval($key) == "Genotype_with_Description") {
                         $genotypeWithDescriptionArray = preg_split("/[ ]+/", $value);
                         for ($k = 0; $k < count($genotypeWithDescriptionArray); $k++) {
+
+                            // Add imputation information
+                            if (isset($imp_result_arr) && !empty($imp_result_arr)){
+                                if (count($imp_result_arr) > 0) {
+                                    for ($m = 0; $m < count($imp_result_arr); $m++) {
+                                        if($imp_result_arr[$m]->Accession == $result_arr[$i]->Accession && $imp_result_arr[$m]->Gene == $result_arr[$i]->Gene && intval($imp_result_arr[$m]->Position) === intval($positionArray[$k])) {
+                                            $genotypeWithDescriptionArray[$k] = strval($genotypeWithDescriptionArray[$k]) . "|+";
+                                        }
+                                    }
+                                }
+                            }
+
                             if (preg_match("/missense.variant/i", $genotypeWithDescriptionArray[$k])) {
                                 $temp_value_arr = preg_split("/[;, |\n]+/", $genotypeWithDescriptionArray[$k]);
-                                $temp_value = (count($temp_value_arr) > 2 ? $temp_value_arr[0] . "|" . $temp_value_arr[2] : $genotypeWithDescriptionArray[$k]);
+                                $temp_value = "";
+                                if (count($temp_value_arr) > 2) {
+                                    $temp_value = $temp_value_arr[0];
+                                    for ($m = 2; $m < count($temp_value_arr); $m++) {
+                                        $temp_value = $temp_value . "|" . $temp_value_arr[$m];
+                                    }
+                                } else {
+                                    $temp_value = $genotypeWithDescriptionArray[$k];
+                                }
                                 echo "<td id=\"pos__" . $result_arr[$i]->Gene . "__" . $key . "__" . $i . "\" style=\"border:1px solid black; min-width:120px; background-color:" . $missense_variant_color_code . "\">" . $temp_value . "</td>";
                             } else if (preg_match("/frameshift/i", $genotypeWithDescriptionArray[$k])) {
                                 echo "<td id=\"pos__" . $result_arr[$i]->Gene . "__" . $key . "__" . $i . "\" style=\"border:1px solid black; min-width:120px; background-color:" . $frameshift_variant_color_code . "\">" . $genotypeWithDescriptionArray[$k] . "</td>";
@@ -98,11 +119,27 @@ $splice_color_code = "#9EE85C";
                                 echo "<td id=\"pos__" . $result_arr[$i]->Gene . "__" . $key . "__" . $i . "\" style=\"border:1px solid black; min-width:120px; background-color:" . $exon_loss_variant_color_code . "\">" . $genotypeWithDescriptionArray[$k] . "</td>";
                             } else if (preg_match("/lost/i", $genotypeWithDescriptionArray[$k])) {
                                 $temp_value_arr = preg_split("/[;, |\n]+/", $genotypeWithDescriptionArray[$k]);
-                                $temp_value = (count($temp_value_arr) > 2 ? $temp_value_arr[0] . "|" . $temp_value_arr[2] : $genotypeWithDescriptionArray[$k]);
+                                $temp_value = "";
+                                if (count($temp_value_arr) > 2) {
+                                    $temp_value = $temp_value_arr[0];
+                                    for ($m = 2; $m < count($temp_value_arr); $m++) {
+                                        $temp_value = $temp_value . "|" . $temp_value_arr[$m];
+                                    }
+                                } else {
+                                    $temp_value = $genotypeWithDescriptionArray[$k];
+                                }
                                 echo "<td id=\"pos__" . $result_arr[$i]->Gene . "__" . $key . "__" . $i . "\" style=\"border:1px solid black; min-width:120px; background-color:" . $lost_color_code . "\">" . $genotypeWithDescriptionArray[$k] . "</td>";
                             } else if (preg_match("/gain/i", $genotypeWithDescriptionArray[$k])) {
                                 $temp_value_arr = preg_split("/[;, |\n]+/", $genotypeWithDescriptionArray[$k]);
-                                $temp_value = (count($temp_value_arr) > 2 ? $temp_value_arr[0] . "|" . $temp_value_arr[2] : $genotypeWithDescriptionArray[$k]);
+                                $temp_value = "";
+                                if (count($temp_value_arr) > 2) {
+                                    $temp_value = $temp_value_arr[0];
+                                    for ($m = 2; $m < count($temp_value_arr); $m++) {
+                                        $temp_value = $temp_value . "|" . $temp_value_arr[$m];
+                                    }
+                                } else {
+                                    $temp_value = $genotypeWithDescriptionArray[$k];
+                                }
                                 echo "<td id=\"pos__" . $result_arr[$i]->Gene . "__" . $key . "__" . $i . "\" style=\"border:1px solid black; min-width:120px; background-color:" . $gain_color_code . "\">" . $genotypeWithDescriptionArray[$k] . "</td>";
                             } else if (preg_match("/disruptive/i", $genotypeWithDescriptionArray[$k])) {
                                 echo "<td id=\"pos__" . $result_arr[$i]->Gene . "__" . $key . "__" . $i . "\" style=\"border:1px solid black; min-width:120px; background-color:" . $disruptive_color_code . "\">" . $genotypeWithDescriptionArray[$k] . "</td>";
