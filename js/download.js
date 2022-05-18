@@ -55,7 +55,7 @@ function convertJsonToCsv(jsonObject) {
 
 
 function createAndDownloadCsvFile(csvString, filename) {
-    let dataStr = "data:text/csv;charset=utf-8," + csvString;
+    let dataStr = "data:text/csv;charset=utf-8," + encodeURI(csvString);
     let downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
     downloadAnchorNode.setAttribute("download", filename + ".csv");
