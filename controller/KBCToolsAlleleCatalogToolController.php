@@ -14,13 +14,378 @@ use App\KBCClasses\DBKBCWrapperClass;
 
 class KBCToolsAlleleCatalogToolController extends Controller
 {
+
+
     function __construct()
     {
         $this->db_kbc_wrapper = new DBKBCWrapperClass;
     }
 
-    public function AlleleCatalogToolPage(Request $request, $organism)
-    {
+
+    public function getTableNames($organism, $dataset) {
+        // Table names and datasets
+        if ($organism == "Zmays" && $dataset == "Maize1210") {
+            $key_column = "Improvement_Status";
+            $gff_table = "act_Maize_AGPv3_GFF";
+            $accession_mapping_table = "act_Maize1210_Accession_Mapping";
+        } elseif ($organism == "Athaliana" && $dataset == "Arabidopsis1135") {
+            $key_column = "Group";
+            $gff_table = "act_Arabidopsis_TAIR10_GFF";
+            $accession_mapping_table = "act_Arabidopsis1135_Accession_Mapping";
+        } elseif ($organism == "Osativa" && $dataset == "Rice166") {
+            $key_column = "";
+            $gff_table = "act_Rice_Nipponbare_GFF";
+            $accession_mapping_table = "act_Rice166_Accession_Mapping";
+        } elseif ($organism == "Osativa" && $dataset == "Rice3000") {
+            $key_column = "Subpopulation";
+            $gff_table = "act_Rice_Nipponbare_GFF";
+            $accession_mapping_table = "act_Rice3000_Accession_Mapping";
+        } else {
+            $key_column = "";
+            $gff_table = "";
+            $accession_mapping_table = $dataset;
+        }
+
+        return array(
+            "key_column" => $key_column,
+            "gff_table" => $gff_table,
+            "accession_mapping_table" => $accession_mapping_table
+        );
+    }
+
+
+    public function getSummarizedDataQueryString($organism, $dataset, $db, $gff_table, $accession_mapping_table, $gene, $chromosome, $improvement_status_array, $having = "") {
+        if ($organism == "Zmays" && $dataset == "Maize1210") {
+            // Generate SQL string
+            $query_str = "SELECT ";
+            if (in_array("Improved_Cultivar", $improvement_status_array)) {
+                $query_str = $query_str . "COUNT(IF(ACD.Improvement_Status = 'Improved_Cultivar', 1, null)) AS Improved_Cultivar, ";
+            }
+            if (in_array("Landrace", $improvement_status_array)) {
+                $query_str = $query_str . "COUNT(IF(ACD.Improvement_Status = 'Landrace', 1, null)) AS Landrace, ";
+            }
+            if (in_array("Wild_Relative", $improvement_status_array)) {
+                $query_str = $query_str . "COUNT(IF(ACD.Improvement_Status = 'Wild_Relative', 1, null)) AS Wild_Relative, ";
+            }
+            if (in_array("exPVP", $improvement_status_array)) {
+                $query_str = $query_str . "COUNT(IF(ACD.Improvement_Status = 'exPVP', 1, null)) AS exPVP, ";
+            }
+            if (in_array("Other", $improvement_status_array)) {
+                $query_str = $query_str . "COUNT(IF(ACD.Improvement_Status = 'Other', 1, null)) AS Other, ";
+            }
+            $query_str = $query_str . "COUNT(ACD.Accession) AS Total, ";
+            $query_str = $query_str . "ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description ";
+            $query_str = $query_str . "FROM ( ";
+            $query_str = $query_str . "    SELECT AM.Improvement_Status, GD.Accession, ";
+            $query_str = $query_str . "    GD.Gene, GD.Chromosome, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Position SEPARATOR ' ') AS Position, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Genotype SEPARATOR ' ') AS Genotype, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Genotype_Description SEPARATOR ' ') AS Genotype_Description ";
+            $query_str = $query_str . "    FROM ( ";
+            $query_str = $query_str . "        SELECT G.Chromosome, G.Position, G.Accession, GFF.Gene, G.Genotype, ";
+            $query_str = $query_str . "        CONCAT_WS('|', G.Genotype, G.Functional_Effect, G.Amino_Acid_Change) AS Genotype_Description ";
+            $query_str = $query_str . "        FROM ( ";
+            $query_str = $query_str . "            SELECT Chromosome, Start, End, Name AS Gene ";
+            $query_str = $query_str . "            FROM " . $db . "." . $gff_table . " ";
+            $query_str = $query_str . "            WHERE Name IN ('" . $gene . "') ";
+            $query_str = $query_str . "        ) AS GFF ";
+            $query_str = $query_str . "        INNER JOIN " . $db . ".act_" . $dataset . "_" . $chromosome . " AS G ";
+            $query_str = $query_str . "        ON (G.Chromosome = GFF.Chromosome) AND (G.Position >= GFF.Start) AND (G.Position <= GFF.End) ";
+            $query_str = $query_str . "        ORDER BY G.Position ";
+            $query_str = $query_str . "    ) AS GD ";
+            $query_str = $query_str . "    LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
+            $query_str = $query_str . "    ON AM.Accession = GD.Accession ";
+            $query_str = $query_str . "    GROUP BY AM.Improvement_Status, GD.Accession, GD.Gene, GD.Chromosome ";
+            $query_str = $query_str . ") AS ACD ";
+            $query_str = $query_str . "GROUP BY ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description ";
+            $query_str = $query_str . $having;
+            $query_str = $query_str . "ORDER BY ACD.Gene, Total DESC; ";
+        } elseif ($organism == "Athaliana" && $dataset == "Arabidopsis1135") {
+            // Generate SQL string
+            $query_str = "SELECT ";
+            if (in_array("Central", $improvement_status_array)) {
+                $query_str = $query_str . "COUNT(IF(ACD.Group = 'Central', 1, null)) AS Central, ";
+            }
+            if (in_array("East", $improvement_status_array)) {
+                $query_str = $query_str . "COUNT(IF(ACD.Group = 'East', 1, null)) AS East, ";
+            }
+            if (in_array("North", $improvement_status_array)) {
+                $query_str = $query_str . "COUNT(IF(ACD.Group = 'North', 1, null)) AS North, ";
+            }
+            if (in_array("South", $improvement_status_array)) {
+                $query_str = $query_str . "COUNT(IF(ACD.Group = 'South', 1, null)) AS South, ";
+            }
+            if (in_array("Other", $improvement_status_array)) {
+                $query_str = $query_str . "COUNT(IF(ACD.Group = 'Other', 1, null)) AS Other, ";
+            }
+            $query_str = $query_str . "COUNT(ACD.Accession) AS Total, ";
+            $query_str = $query_str . "ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description ";
+            $query_str = $query_str . "FROM ( ";
+            $query_str = $query_str . "    SELECT AM.Group, GD.Accession, ";
+            $query_str = $query_str . "    GD.Gene, GD.Chromosome, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Position SEPARATOR ' ') AS Position, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Genotype SEPARATOR ' ') AS Genotype, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Genotype_Description SEPARATOR ' ') AS Genotype_Description ";
+            $query_str = $query_str . "    FROM ( ";
+            $query_str = $query_str . "        SELECT G.Chromosome, G.Position, G.Accession, GFF.Gene, G.Genotype, ";
+            $query_str = $query_str . "        CONCAT_WS('|', G.Genotype, G.Functional_Effect, G.Amino_Acid_Change) AS Genotype_Description ";
+            $query_str = $query_str . "        FROM ( ";
+            $query_str = $query_str . "            SELECT Chromosome, Start, End, Name AS Gene ";
+            $query_str = $query_str . "            FROM " . $db . "." . $gff_table . " ";
+            $query_str = $query_str . "            WHERE Name IN ('" . $gene . "') ";
+            $query_str = $query_str . "        ) AS GFF ";
+            $query_str = $query_str . "        INNER JOIN " . $db . ".act_" . $dataset . "_" . $chromosome . " AS G ";
+            $query_str = $query_str . "        ON (G.Chromosome = GFF.Chromosome) AND (G.Position >= GFF.Start) AND (G.Position <= GFF.End) ";
+            $query_str = $query_str . "        ORDER BY G.Position ";
+            $query_str = $query_str . "    ) AS GD ";
+            $query_str = $query_str . "    LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
+            $query_str = $query_str . "    ON AM.Accession = GD.Accession ";
+            $query_str = $query_str . "    GROUP BY AM.Group, GD.Accession, GD.Gene, GD.Chromosome ";
+            $query_str = $query_str . ") AS ACD ";
+            $query_str = $query_str . "GROUP BY ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description ";
+            $query_str = $query_str . $having;
+            $query_str = $query_str . "ORDER BY ACD.Gene, Total DESC; ";
+        } elseif ($organism == "Osativa" && $dataset == "Rice166") {
+            // Generate SQL string
+            $query_str = "SELECT ";
+            $query_str = $query_str . "COUNT(ACD.Accession) AS Total, ";
+            $query_str = $query_str . "ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description ";
+            $query_str = $query_str . "FROM ( ";
+            $query_str = $query_str . "    SELECT GD.Accession, ";
+            $query_str = $query_str . "    GD.Gene, GD.Chromosome, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Position SEPARATOR ' ') AS Position, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Genotype SEPARATOR ' ') AS Genotype, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Genotype_Description SEPARATOR ' ') AS Genotype_Description ";
+            $query_str = $query_str . "    FROM ( ";
+            $query_str = $query_str . "        SELECT G.Chromosome, G.Position, G.Accession, GFF.Gene, G.Genotype, ";
+            $query_str = $query_str . "        CONCAT_WS('|', G.Genotype, G.Functional_Effect, G.Amino_Acid_Change) AS Genotype_Description ";
+            $query_str = $query_str . "        FROM ( ";
+            $query_str = $query_str . "            SELECT Chromosome, Start, End, Name AS Gene ";
+            $query_str = $query_str . "            FROM " . $db . "." . $gff_table . " ";
+            $query_str = $query_str . "            WHERE Name IN ('" . $gene . "') ";
+            $query_str = $query_str . "        ) AS GFF ";
+            $query_str = $query_str . "        INNER JOIN " . $db . ".act_" . $dataset . "_" . $chromosome . " AS G ";
+            $query_str = $query_str . "        ON (G.Chromosome = GFF.Chromosome) AND (G.Position >= GFF.Start) AND (G.Position <= GFF.End) ";
+            $query_str = $query_str . "        ORDER BY G.Position ";
+            $query_str = $query_str . "    ) AS GD ";
+            $query_str = $query_str . "    LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
+            $query_str = $query_str . "    ON AM.Accession = GD.Accession ";
+            $query_str = $query_str . "    GROUP BY GD.Accession, GD.Gene, GD.Chromosome ";
+            $query_str = $query_str . ") AS ACD ";
+            $query_str = $query_str . "GROUP BY ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description ";
+            $query_str = $query_str . $having;
+            $query_str = $query_str . "ORDER BY ACD.Gene, Total DESC; ";
+        } elseif ($organism == "Osativa" && $dataset == "Rice3000") {
+            // Generate SQL string
+            $query_str = "SELECT ";
+            if (in_array("admix", $improvement_status_array)) {
+                $query_str = $query_str . "COUNT(IF(ACD.Subpopulation = 'admix', 1, null)) AS admix, ";
+            }
+            if (in_array("aro", $improvement_status_array)) {
+                $query_str = $query_str . "COUNT(IF(ACD.Subpopulation = 'aro', 1, null)) AS aro, ";
+            }
+            if (in_array("aus", $improvement_status_array)) {
+                $query_str = $query_str . "COUNT(IF(ACD.Subpopulation = 'aus', 1, null)) AS aus, ";
+            }
+            if (in_array("ind1A", $improvement_status_array)) {
+                $query_str = $query_str . "COUNT(IF(ACD.Subpopulation = 'ind1A', 1, null)) AS ind1A, ";
+            }
+            if (in_array("ind1B", $improvement_status_array)) {
+                $query_str = $query_str . "COUNT(IF(ACD.Subpopulation = 'ind1B', 1, null)) AS ind1B, ";
+            }
+            if (in_array("ind2", $improvement_status_array)) {
+                $query_str = $query_str . "COUNT(IF(ACD.Subpopulation = 'ind2', 1, null)) AS ind2, ";
+            }
+            if (in_array("ind3", $improvement_status_array)) {
+                $query_str = $query_str . "COUNT(IF(ACD.Subpopulation = 'ind3', 1, null)) AS ind3, ";
+            }
+            if (in_array("indx", $improvement_status_array)) {
+                $query_str = $query_str . "COUNT(IF(ACD.Subpopulation = 'indx', 1, null)) AS indx, ";
+            }
+            if (in_array("japx", $improvement_status_array)) {
+                $query_str = $query_str . "COUNT(IF(ACD.Subpopulation = 'japx', 1, null)) AS japx, ";
+            }
+            if (in_array("subtrop", $improvement_status_array)) {
+                $query_str = $query_str . "COUNT(IF(ACD.Subpopulation = 'subtrop', 1, null)) AS subtrop, ";
+            }
+            if (in_array("temp", $improvement_status_array)) {
+                $query_str = $query_str . "COUNT(IF(ACD.Subpopulation = 'temp', 1, null)) AS temp, ";
+            }
+            if (in_array("trop", $improvement_status_array)) {
+                $query_str = $query_str . "COUNT(IF(ACD.Subpopulation = 'trop', 1, null)) AS trop, ";
+            }
+            $query_str = $query_str . "COUNT(ACD.Accession) AS Total, ";
+            $query_str = $query_str . "ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description ";
+            $query_str = $query_str . "FROM ( ";
+            $query_str = $query_str . "    SELECT AM.Subpopulation, GD.Accession, ";
+            $query_str = $query_str . "    GD.Gene, GD.Chromosome, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Position SEPARATOR ' ') AS Position, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Genotype SEPARATOR ' ') AS Genotype, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Genotype_Description SEPARATOR ' ') AS Genotype_Description ";
+            $query_str = $query_str . "    FROM ( ";
+            $query_str = $query_str . "        SELECT G.Chromosome, G.Position, G.Accession, GFF.Gene, G.Genotype, ";
+            $query_str = $query_str . "        CONCAT_WS('|', G.Genotype, G.Functional_Effect, G.Amino_Acid_Change) AS Genotype_Description ";
+            $query_str = $query_str . "        FROM ( ";
+            $query_str = $query_str . "            SELECT Chromosome, Start, End, Name AS Gene ";
+            $query_str = $query_str . "            FROM " . $db . "." . $gff_table . " ";
+            $query_str = $query_str . "            WHERE Name IN ('" . $gene . "') ";
+            $query_str = $query_str . "        ) AS GFF ";
+            $query_str = $query_str . "        INNER JOIN " . $db . ".act_" . $dataset . "_" . $chromosome . " AS G ";
+            $query_str = $query_str . "        ON (G.Chromosome = GFF.Chromosome) AND (G.Position >= GFF.Start) AND (G.Position <= GFF.End) ";
+            $query_str = $query_str . "        ORDER BY G.Position ";
+            $query_str = $query_str . "    ) AS GD ";
+            $query_str = $query_str . "    LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
+            $query_str = $query_str . "    ON AM.Accession = GD.Accession ";
+            $query_str = $query_str . "    GROUP BY AM.Subpopulation, GD.Accession, GD.Gene, GD.Chromosome ";
+            $query_str = $query_str . ") AS ACD ";
+            $query_str = $query_str . "GROUP BY ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description ";
+            $query_str = $query_str . $having;
+            $query_str = $query_str . "ORDER BY ACD.Gene, Total DESC; ";
+        }
+
+        return $query_str;
+    }
+
+
+    public function getDataQueryString($organism, $dataset, $db, $gff_table, $accession_mapping_table, $gene, $chromosome, $where = "") {
+        if ($organism == "Zmays" && $dataset == "Maize1210") {
+            // Generate SQL string
+            $query_str = "SELECT ";
+            $query_str = $query_str . "ACD.Kernel_Type, ACD.Improvement_Status, ACD.Country, ACD.State, ";
+            $query_str = $query_str . "ACD.Accession, ACD.Panzea_Accession, ";
+            $query_str = $query_str . "ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description, ACD.Imputation ";
+            $query_str = $query_str . "FROM ( ";
+            $query_str = $query_str . "    SELECT AM.Kernel_Type, AM.Improvement_Status, AM.Country, AM.State, ";
+            $query_str = $query_str . "    GD.Accession, AM.Panzea_Accession, ";
+            $query_str = $query_str . "    GD.Gene, GD.Chromosome, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Position SEPARATOR ' ') AS Position, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Genotype SEPARATOR ' ') AS Genotype, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Genotype_Description SEPARATOR ' ') AS Genotype_Description, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Imputation SEPARATOR ' ') AS Imputation ";
+            $query_str = $query_str . "    FROM ( ";
+            $query_str = $query_str . "        SELECT G.Chromosome, G.Position, G.Accession, GFF.Gene, G.Genotype, ";
+            $query_str = $query_str . "        CONCAT_WS('|', G.Genotype, G.Functional_Effect, G.Amino_Acid_Change, G.Imputation) AS Genotype_Description, ";
+            $query_str = $query_str . "        G.Imputation ";
+            $query_str = $query_str . "        FROM ( ";
+            $query_str = $query_str . "            SELECT Chromosome, Start, End, Name AS Gene ";
+            $query_str = $query_str . "            FROM " . $db . "." . $gff_table . " ";
+            $query_str = $query_str . "            WHERE Name IN ('" . $gene . "') ";
+            $query_str = $query_str . "        ) AS GFF ";
+            $query_str = $query_str . "        INNER JOIN " . $db . ".act_" . $dataset . "_" . $chromosome . " AS G ";
+            $query_str = $query_str . "        ON (G.Chromosome = GFF.Chromosome) AND (G.Position >= GFF.Start) AND (G.Position <= GFF.End) ";
+            $query_str = $query_str . "        ORDER BY G.Position ";
+            $query_str = $query_str . "    ) AS GD ";
+            $query_str = $query_str . "    LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
+            $query_str = $query_str . "    ON AM.Accession = GD.Accession ";
+            $query_str = $query_str . "    GROUP BY AM.Kernel_Type, AM.Improvement_Status, AM.Country, AM.State, GD.Accession, AM.Panzea_Accession, GD.Gene, GD.Chromosome ";
+            $query_str = $query_str . ") AS ACD ";
+            $query_str = $query_str . $where;
+            $query_str = $query_str . "ORDER BY ACD.Gene; ";
+        } elseif ($organism == "Athaliana" && $dataset == "Arabidopsis1135") {
+            // Generate SQL string
+            $query_str = "SELECT ";
+            $query_str = $query_str . "ACD.Admixture_Group, ACD.Group, ACD.Country, ACD.State, ";
+            $query_str = $query_str . "ACD.Accession, ACD.TAIR_Accession, ACD.Name, ";
+            $query_str = $query_str . "ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description, ACD.Imputation ";
+            $query_str = $query_str . "FROM ( ";
+            $query_str = $query_str . "    SELECT AM.Admixture_Group, AM.Group, AM.Country, AM.State, ";
+            $query_str = $query_str . "    GD.Accession, AM.TAIR_Accession, AM.Name, ";
+            $query_str = $query_str . "    GD.Gene, GD.Chromosome, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Position SEPARATOR ' ') AS Position, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Genotype SEPARATOR ' ') AS Genotype, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Genotype_Description SEPARATOR ' ') AS Genotype_Description, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Imputation SEPARATOR ' ') AS Imputation ";
+            $query_str = $query_str . "    FROM ( ";
+            $query_str = $query_str . "        SELECT G.Chromosome, G.Position, G.Accession, GFF.Gene, G.Genotype, ";
+            $query_str = $query_str . "        CONCAT_WS('|', G.Genotype, G.Functional_Effect, G.Amino_Acid_Change, G.Imputation) AS Genotype_Description, ";
+            $query_str = $query_str . "        G.Imputation ";
+            $query_str = $query_str . "        FROM ( ";
+            $query_str = $query_str . "            SELECT Chromosome, Start, End, Name AS Gene ";
+            $query_str = $query_str . "            FROM " . $db . "." . $gff_table . " ";
+            $query_str = $query_str . "            WHERE Name IN ('" . $gene . "') ";
+            $query_str = $query_str . "        ) AS GFF ";
+            $query_str = $query_str . "        INNER JOIN " . $db . ".act_" . $dataset . "_" . $chromosome . " AS G ";
+            $query_str = $query_str . "        ON (G.Chromosome = GFF.Chromosome) AND (G.Position >= GFF.Start) AND (G.Position <= GFF.End) ";
+            $query_str = $query_str . "        ORDER BY G.Position ";
+            $query_str = $query_str . "    ) AS GD ";
+            $query_str = $query_str . "    LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
+            $query_str = $query_str . "    ON AM.Accession = GD.Accession ";
+            $query_str = $query_str . "    GROUP BY AM.Admixture_Group, AM.Group, AM.Country, AM.State, GD.Accession, AM.TAIR_Accession, AM.Name, GD.Gene, GD.Chromosome ";
+            $query_str = $query_str . ") AS ACD ";
+            $query_str = $query_str . $where;
+            $query_str = $query_str . "ORDER BY ACD.Gene; ";
+        } elseif ($organism == "Osativa" && $dataset == "Rice166") {
+            // Generate SQL string
+            $query_str = "SELECT ";
+            $query_str = $query_str . "ACD.Accession, ";
+            $query_str = $query_str . "ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description, ACD.Imputation ";
+            $query_str = $query_str . "FROM ( ";
+            $query_str = $query_str . "    SELECT ";
+            $query_str = $query_str . "    GD.Accession, ";
+            $query_str = $query_str . "    GD.Gene, GD.Chromosome, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Position SEPARATOR ' ') AS Position, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Genotype SEPARATOR ' ') AS Genotype, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Genotype_Description SEPARATOR ' ') AS Genotype_Description, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Imputation SEPARATOR ' ') AS Imputation ";
+            $query_str = $query_str . "    FROM ( ";
+            $query_str = $query_str . "        SELECT G.Chromosome, G.Position, G.Accession, GFF.Gene, G.Genotype, ";
+            $query_str = $query_str . "        CONCAT_WS('|', G.Genotype, G.Functional_Effect, G.Amino_Acid_Change, G.Imputation) AS Genotype_Description, ";
+            $query_str = $query_str . "        G.Imputation ";
+            $query_str = $query_str . "        FROM ( ";
+            $query_str = $query_str . "            SELECT Chromosome, Start, End, Name AS Gene ";
+            $query_str = $query_str . "            FROM " . $db . "." . $gff_table . " ";
+            $query_str = $query_str . "            WHERE Name IN ('" . $gene . "') ";
+            $query_str = $query_str . "        ) AS GFF ";
+            $query_str = $query_str . "        INNER JOIN " . $db . ".act_" . $dataset . "_" . $chromosome . " AS G ";
+            $query_str = $query_str . "        ON (G.Chromosome = GFF.Chromosome) AND (G.Position >= GFF.Start) AND (G.Position <= GFF.End) ";
+            $query_str = $query_str . "        ORDER BY G.Position ";
+            $query_str = $query_str . "    ) AS GD ";
+            $query_str = $query_str . "    LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
+            $query_str = $query_str . "    ON AM.Accession = GD.Accession ";
+            $query_str = $query_str . "    GROUP BY GD.Accession, GD.Gene, GD.Chromosome ";
+            $query_str = $query_str . ") AS ACD ";
+            $query_str = $query_str . $where;
+            $query_str = $query_str . "ORDER BY ACD.Gene; ";
+        } elseif ($organism == "Osativa" && $dataset == "Rice3000") {
+            // Generate SQL string
+            $query_str = "SELECT ";
+            $query_str = $query_str . "ACD.Subpopulation, ACD.Country, ";
+            $query_str = $query_str . "ACD.Accession, ";
+            $query_str = $query_str . "ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description, ACD.Imputation ";
+            $query_str = $query_str . "FROM ( ";
+            $query_str = $query_str . "    SELECT AM.Subpopulation, AM.Country, ";
+            $query_str = $query_str . "    GD.Accession, ";
+            $query_str = $query_str . "    GD.Gene, GD.Chromosome, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Position SEPARATOR ' ') AS Position, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Genotype SEPARATOR ' ') AS Genotype, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Genotype_Description SEPARATOR ' ') AS Genotype_Description, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Imputation SEPARATOR ' ') AS Imputation ";
+            $query_str = $query_str . "    FROM ( ";
+            $query_str = $query_str . "        SELECT G.Chromosome, G.Position, G.Accession, GFF.Gene, G.Genotype, ";
+            $query_str = $query_str . "        CONCAT_WS('|', G.Genotype, G.Functional_Effect, G.Amino_Acid_Change, G.Imputation) AS Genotype_Description, ";
+            $query_str = $query_str . "        G.Imputation ";
+            $query_str = $query_str . "        FROM ( ";
+            $query_str = $query_str . "            SELECT Chromosome, Start, End, Name AS Gene ";
+            $query_str = $query_str . "            FROM " . $db . "." . $gff_table . " ";
+            $query_str = $query_str . "            WHERE Name IN ('" . $gene . "') ";
+            $query_str = $query_str . "        ) AS GFF ";
+            $query_str = $query_str . "        INNER JOIN " . $db . ".act_" . $dataset . "_" . $chromosome . " AS G ";
+            $query_str = $query_str . "        ON (G.Chromosome = GFF.Chromosome) AND (G.Position >= GFF.Start) AND (G.Position <= GFF.End) ";
+            $query_str = $query_str . "        ORDER BY G.Position ";
+            $query_str = $query_str . "    ) AS GD ";
+            $query_str = $query_str . "    LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
+            $query_str = $query_str . "    ON AM.Accession = GD.Accession ";
+            $query_str = $query_str . "    GROUP BY AM.Subpopulation, AM.Country, GD.Accession, GD.Gene, GD.Chromosome ";
+            $query_str = $query_str . ") AS ACD ";
+            $query_str = $query_str . $where;
+            $query_str = $query_str . "ORDER BY ACD.Gene; ";
+        }
+
+        return $query_str;
+    }
+
+
+    public function AlleleCatalogToolPage(Request $request, $organism) {
         $admin_db_wapper = new DBAdminWrapperClass;
 
         // Database
@@ -28,33 +393,55 @@ class KBCToolsAlleleCatalogToolController extends Controller
 
         // Table names and datasets
         if ($organism == "Zmays") {
-            $table_name = "Zmays_Panzea_AGPv3_Allele_Catalog";
-            $dataset_array = array("Zmays_Panzea_AGPv3_Allele_Catalog");
-
-            // Query gene from database
-            $sql = "SELECT DISTINCT Gene FROM " . $db . "." . $table_name . " WHERE Gene IS NOT NULL AND Gene LIKE 'GRMZM%' LIMIT 3;";
-            $gene_array = DB::connection($db)->select($sql);
+            $gff_table = "act_Maize_AGPv3_GFF";
+            $accession_mapping_table = "act_Maize1210_Accession_Mapping";
         } elseif ($organism == "Athaliana") {
-            $table_name = "Athaliana_Arabidopsis_TAIR10_Allele_Catalog";
-            $dataset_array = array("Athaliana_Arabidopsis_TAIR10_Allele_Catalog");
-
-            // Query gene from database
-            $sql = "SELECT DISTINCT Gene FROM " . $db . "." . $table_name . " WHERE Gene IS NOT NULL LIMIT 3;";
-            $gene_array = DB::connection($db)->select($sql);
+            $gff_table = "act_Arabidopsis_TAIR10_GFF";
+            $accession_mapping_table = "act_Arabidopsis1135_Accession_Mapping";
+        } elseif ($organism == "Osativa") {
+            $gff_table = "act_Rice_Nipponbare_GFF";
+            $accession_mapping_table = "act_Rice3000_Accession_Mapping";
         }
 
-        // Checkboxes options
+        // Define datasets
         if ($organism == "Zmays") {
-            $checkboxes = array("Improved_Cultivar", "Landrace", "Wild_Relative", "exPVP", "Other", "Imputed", "Unimputed");
+            $dataset_array = array("Maize1210");
         } elseif ($organism == "Athaliana") {
-            $checkboxes = array("North", "Central", "South", "East", "Other", "Imputed", "Unimputed");
-        } else {
-            $checkboxes = array("Imputed", "Unimputed");
+            $dataset_array = array("Arabidopsis1135");
+        } elseif ($organism == "Osativa") {
+            $dataset_array = array("Rice3000", "Rice166");
         }
 
-        if (isset($table_name)) {
+        try {
+            // Query gene from database
+            if ($organism == "Zmays") {
+                $sql = "SELECT DISTINCT Name AS Gene FROM " . $db . "." . $gff_table . " WHERE Name IS NOT NULL AND Name LIKE 'GRMZM%' LIMIT 3;";
+            } else {
+                $sql = "SELECT DISTINCT Name AS Gene FROM " . $db . "." . $gff_table . " WHERE Name IS NOT NULL LIMIT 3;";
+            }
+            $gene_array = DB::connection($db)->select($sql);
+
+            // Query improvement status, group, or subpopulation from database
+            if ($organism == "Zmays") {
+                $key_column = "Improvement_Status";
+                $sql = "SELECT DISTINCT Improvement_Status AS `Key` FROM " . $db . "." . $accession_mapping_table . ";";
+            } elseif ($organism == "Athaliana") {
+                $key_column = "Group";
+                $sql = "SELECT DISTINCT `Group` AS `Key` FROM " . $db . "." . $accession_mapping_table . ";";
+            } elseif ($organism == "Osativa") {
+                $key_column = "Subpopulation";
+                $sql = "SELECT DISTINCT Subpopulation AS `Key` FROM " . $db . "." . $accession_mapping_table . ";";
+            }
+            $improvement_status_array = DB::connection($db)->select($sql);
+
             // Query accession from database
-            $sql = "SELECT DISTINCT Accession FROM " . $db . "." . $table_name . " WHERE Accession IS NOT NULL LIMIT 3;";
+            if ($organism == "Zmays") {
+                $sql = "SELECT DISTINCT Panzea_Accession AS Accession FROM " . $db . "." . $accession_mapping_table . " WHERE Accession IS NOT NULL LIMIT 3;";
+            } elseif ($organism == "Athaliana") {
+                $sql = "SELECT DISTINCT TAIR_Accession AS Accession FROM " . $db . "." . $accession_mapping_table . " WHERE Accession IS NOT NULL LIMIT 3;";
+            } elseif ($organism == "Osativa") {
+                $sql = "SELECT DISTINCT Accession FROM " . $db . "." . $accession_mapping_table . " WHERE Accession IS NOT NULL LIMIT 3;";
+            }
             $accession_array = DB::connection($db)->select($sql);
 
             // Package variables that need to go to the view
@@ -63,15 +450,17 @@ class KBCToolsAlleleCatalogToolController extends Controller
                 'dataset_array' => $dataset_array,
                 'gene_array' => $gene_array,
                 'accession_array' => $accession_array,
-                'checkboxes' => $checkboxes,
+                'key_column' => $key_column,
+                'improvement_status_array' => $improvement_status_array,
+                'accession_mapping_table' => $accession_mapping_table
             ];
 
             // Return to view
             return view('system/tools/AlleleCatalogTool/AlleleCatalogTool')->with('info', $info);
-        } else {
+        } catch (\Exception $e) {
             // Package variables that need to go to the view
             $info = [
-                'organism' => $organism,
+                'organism' => $organism
             ];
 
             // Return to view
@@ -80,203 +469,203 @@ class KBCToolsAlleleCatalogToolController extends Controller
     }
 
 
-    // dataProcessor
-    public function processAccessionCounts($accessionCounts)
-    {
-        $splittedAccessionCounts = array();
+    public function UpdateSearchByGeneIDs(Request $request, $organism) {
+        // Database
+        $db = "KBC_" . $organism;
 
-        for ($i = 0; $i < count($accessionCounts); $i++) {
-            if (array_key_exists($accessionCounts[$i]->Gene, $splittedAccessionCounts)) {
-                array_push($splittedAccessionCounts[$accessionCounts[$i]->Gene], $accessionCounts[$i]);
-            } else {
-                $splittedAccessionCounts[$accessionCounts[$i]->Gene] = array();
-                array_push($splittedAccessionCounts[$accessionCounts[$i]->Gene], $accessionCounts[$i]);
-            }
+        $dataset = $request->Dataset;
+
+        // Table names and datasets
+        $table_names = self::getTableNames($organism, $dataset);
+        $key_column = $table_names["key_column"];
+        $gff_table = $table_names["gff_table"];
+        $accession_mapping_table = $table_names["accession_mapping_table"];
+
+        // Query gene from database
+        if ($organism == "Zmays" && $dataset == "Maize1210") {
+            $sql = "SELECT DISTINCT Name AS Gene FROM " . $db . "." . $gff_table . " WHERE Name IS NOT NULL AND Name LIKE 'GRMZM%' LIMIT 3;";
+        } else {
+            $sql = "SELECT DISTINCT Name AS Gene FROM " . $db . "." . $gff_table . " WHERE Name IS NOT NULL LIMIT 3;";
+        }
+        $gene_array = DB::connection($db)->select($sql);
+
+        // Query improvement status, group, or subpopulation from database
+        if ($organism == "Zmays" && $dataset == "Maize1210") {
+            $sql = "SELECT DISTINCT Improvement_Status AS `Key` FROM " . $db . "." . $accession_mapping_table . ";";
+        } elseif ($organism == "Athaliana" && $dataset == "Arabidopsis1135") {
+            $sql = "SELECT DISTINCT `Group` AS `Key` FROM " . $db . "." . $accession_mapping_table . ";";
+        } elseif ($organism == "Osativa" && $dataset == "Rice166") {
+            $sql = "";
+        } elseif ($organism == "Osativa" && $dataset == "Rice3000") {
+            $sql = "SELECT DISTINCT Subpopulation AS `Key` FROM " . $db . "." . $accession_mapping_table . ";";
+        }
+        try {
+            $improvement_status_array = DB::connection($db)->select($sql);
+        } catch (\Exception $e) {
+            $improvement_status_array = Array();
         }
 
-        return $splittedAccessionCounts;
+        $result_arr = [
+            "Gene" => $gene_array,
+            "Key_Column" => $key_column,
+            "Improvement_Status" => $improvement_status_array,
+        ];
+
+        return json_encode($result_arr);
     }
 
 
-    public function ViewAllByGenesPage(Request $request, $organism)
-    {
+    public function UpdateSearchByAccessionsandGeneID(Request $request, $organism) {
+        // Database
+        $db = "KBC_" . $organism;
+
+        $dataset = $request->Dataset;
+
+        // Table names and datasets
+        $table_names = self::getTableNames($organism, $dataset);
+        $key_column = $table_names["key_column"];
+        $gff_table = $table_names["gff_table"];
+        $accession_mapping_table = $table_names["accession_mapping_table"];
+
+        // Query gene from database
+        if ($organism == "Zmays" && $dataset == "Maize1210") {
+            $sql = "SELECT DISTINCT Name AS Gene FROM " . $db . "." . $gff_table . " WHERE Name IS NOT NULL AND Name LIKE 'GRMZM%' LIMIT 3;";
+        } else {
+            $sql = "SELECT DISTINCT Name AS Gene FROM " . $db . "." . $gff_table . " WHERE Name IS NOT NULL LIMIT 3;";
+        }
+        $gene_array = DB::connection($db)->select($sql);
+
+        // Query accession from database
+        if ($organism == "Zmays" && $dataset == "Maize1210") {
+            $sql = "SELECT DISTINCT Panzea_Accession AS Accession FROM " . $db . "." . $accession_mapping_table . " WHERE Accession IS NOT NULL LIMIT 3;";
+        } elseif ($organism == "Athaliana" && $dataset == "Arabidopsis1135") {
+            $sql = "SELECT DISTINCT TAIR_Accession AS Accession FROM " . $db . "." . $accession_mapping_table . " WHERE Accession IS NOT NULL LIMIT 3;";
+        } elseif ($organism == "Osativa" && $dataset == "Rice166") {
+            $sql = "SELECT DISTINCT Accession FROM " . $db . "." . $accession_mapping_table . " WHERE Accession IS NOT NULL LIMIT 3;";
+        } elseif ($organism == "Osativa" && $dataset == "Rice3000") {
+            $sql = "SELECT DISTINCT Accession FROM " . $db . "." . $accession_mapping_table . " WHERE Accession IS NOT NULL LIMIT 3;";
+        }
+        $accession_array = DB::connection($db)->select($sql);
+
+        $result_arr = [
+            "Gene" => $gene_array,
+            "Accession" => $accession_array,
+        ];
+
+        return json_encode($result_arr);
+    }
+
+
+    public function QueryAccessionInformation(Request $request, $organism) {
+        // Database
+        $db = "KBC_" . $organism;
+
+        $dataset = $request->Dataset;
+
+        // Table names and datasets
+        $table_names = self::getTableNames($organism, $dataset);
+        $key_column = $table_names["key_column"];
+        $gff_table = $table_names["gff_table"];
+        $accession_mapping_table = $table_names["accession_mapping_table"];
+
+        // Query string
+        $query_str = "SELECT * FROM " . $db . "." . $accession_mapping_table . ";";
+
+        $result_arr = DB::connection($db)->select($query_str);
+
+        return json_encode($result_arr);
+    }
+
+
+    public function ViewAllByGenesPage(Request $request, $organism) {
         $admin_db_wapper = new DBAdminWrapperClass;
 
         // Database
         $db = "KBC_" . $organism;
 
-        $dataset1 = $request->dataset1;
-        $gene1 = $request->gene1;
+        $query_str = "SET SESSION group_concat_max_len = 1000000; ";
+        $set_group_concat_max_len_result = DB::connection($db)->select($query_str);
 
-        $improved_cultivar = $request->Improved_Cultivar;
-        $landrace = $request->Landrace;
-        $wild_relative = $request->Wild_Relative;
-        $exPVP = $request->exPVP;
-        $other = $request->Other;
-        $north = $request->North;
-        $central = $request->Central;
-        $south = $request->South;
-        $east = $request->East;
-        $imputed = $request->Imputed;
-        $unimputed = $request->Unimputed;
+        $dataset = $request->dataset_1;
+        $gene = $request->gene_1;
+        $improvement_status = $request->improvement_status_1;
 
-        // Parse genes
-        $gene_arr = preg_split("/[;, \n]+/", $gene1);
-        for ($i = 0; $i < count($gene_arr); $i++) {
-            $gene_arr[$i] = trim($gene_arr[$i]);
+        if (is_string($gene)) {
+            $gene_array = preg_split("/[;, \n]+/", $gene);
+            for ($i = 0; $i < count($gene_array); $i++) {
+                $gene_array[$i] = trim($gene_array[$i]);
+            }
+        } elseif (is_array($gene)) {
+            $gene_array = $gene;
+            for ($i = 0; $i < count($gene_array); $i++) {
+                $gene_array[$i] = trim($gene_array[$i]);
+            }
         }
 
-        // Make a checkboxes array what have been selected
-        $checkboxes = array();
-        if(isset($improved_cultivar)) {
-            array_push($checkboxes, $improved_cultivar);
-        }
-        if(isset($landrace)) {
-            array_push($checkboxes, $landrace);
-        }
-        if(isset($wild_relative)) {
-            array_push($checkboxes, $wild_relative);
-        }
-        if(isset($exPVP)) {
-            array_push($checkboxes, $exPVP);
-        }
-        if(isset($other)) {
-            array_push($checkboxes, $other);
-        }
-        if(isset($north)) {
-            array_push($checkboxes, $north);
-        }
-        if(isset($central)) {
-            array_push($checkboxes, $central);
-        }
-        if(isset($south)) {
-            array_push($checkboxes, $south);
-        }
-        if(isset($east)) {
-            array_push($checkboxes, $east);
-        }
-        if(isset($imputed)) {
-            array_push($checkboxes, $imputed);
-        }
-        if(isset($unimputed)) {
-            array_push($checkboxes, $unimputed);
-        }
-        
-        // Construct sql then make query
-        if ($organism == "Zmays") {
-            $sql = "SELECT ";
-
-            if(in_array("Improved_Cultivar", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'Improved', 1, null)) AS Improved_Cultivar, ";
-            }
-            if(in_array("Landrace", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'Landrace', 1, null)) AS Landrace, ";
-            }
-            if(in_array("Wild_Relative", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'Wild Relative', 1, null)) AS Wild_Relative, ";
-            }
-            if(in_array("exPVP", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'exPVP', 1, null)) AS exPVP, ";
-            }
-            if(in_array("Other", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'Other', 1, null)) AS Other, ";
-            }
-            $sql = $sql . "COUNT(IF(Improvement_Status IN ('Improved', 'Landrace', 'Wild Relative', 'exPVP', 'Other') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
-            if(in_array("Imputed", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Imputation = '+', 1, null)) AS Imputed, ";
-            }
-            if(in_array("Unimputed", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Imputation = '-', 1, null)) AS Unimputed,";
-            }
-
-            $sql = $sql . "Gene, Position, Genotype, Genotype_with_Description 
-            FROM " . $db . "." . $dataset1 . " 
-            WHERE (Gene IN ('";
-            for ($i = 0; $i < count($gene_arr); $i++) {
-                if ($i < (count($gene_arr) - 1)) {
-                    $sql = $sql . $gene_arr[$i] . "', '";
-                } else {
-                    $sql = $sql . $gene_arr[$i];
+        if (isset($improvement_status)) {
+            if (is_string($improvement_status)) {
+                $improvement_status_array = preg_split("/[;, \n]+/", $improvement_status);
+                for ($i = 0; $i < count($improvement_status_array); $i++) {
+                    $improvement_status_array[$i] = trim($improvement_status_array[$i]);
+                }
+            } elseif (is_array($improvement_status)) {
+                $improvement_status_array = $improvement_status;
+                for ($i = 0; $i < count($improvement_status_array); $i++) {
+                    $improvement_status_array[$i] = trim($improvement_status_array[$i]);
                 }
             }
-            $sql = $sql . "')) 
-            GROUP BY Gene, Position, Genotype, Genotype_with_Description 
-            ORDER BY Gene, Position, Total DESC;";
-        } else if ($organism == "Athaliana") {
-            $sql = "SELECT ";
-
-            if(in_array("North", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'North', 1, null)) AS North, ";
-            }
-            if(in_array("Central", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'Central', 1, null)) AS Central, ";
-            }
-            if(in_array("South", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'South', 1, null)) AS South, ";
-            }
-            if(in_array("East", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'East', 1, null)) AS East, ";
-            }
-            if(in_array("Other", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'Other', 1, null)) AS Other, ";
-            }
-            $sql = $sql . "COUNT(IF(Improvement_Status IN ('North', 'Central', 'South', 'East', 'Other') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
-            if(in_array("Imputed", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Imputation = '+', 1, null)) AS Imputed, ";
-            }
-            if(in_array("Unimputed", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, ";
-            }
-
-            $sql = $sql . "Gene, Position, Genotype, Genotype_with_Description 
-            FROM " . $db . "." . $dataset1 . " 
-            WHERE (Gene IN ('";
-            for ($i = 0; $i < count($gene_arr); $i++) {
-                if ($i < (count($gene_arr) - 1)) {
-                    $sql = $sql . $gene_arr[$i] . "', '";
-                } else {
-                    $sql = $sql . $gene_arr[$i];
-                }
-            }
-            $sql = $sql . "')) 
-            GROUP BY Gene, Position, Genotype, Genotype_with_Description 
-            ORDER BY Gene, Position, Total DESC;";
         } else {
-            $sql = "SELECT COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other', 'North', 'Central', 'South', 'East') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
-            
-            if(in_array("Imputed", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Imputation = '+', 1, null)) AS Imputed, ";
-            }
-            if(in_array("Unimputed", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, ";
-            }
-
-            $sql = $sql . "Gene, Position, Genotype, Genotype_with_Description 
-            FROM " . $db . "." . $dataset1 . " 
-            WHERE (Gene IN ('";
-            for ($i = 0; $i < count($gene_arr); $i++) {
-                if ($i < (count($gene_arr) - 1)) {
-                    $sql = $sql . $gene_arr[$i] . "', '";
-                } else {
-                    $sql = $sql . $gene_arr[$i];
-                }
-            }
-            $sql = $sql . "')) 
-            GROUP BY Gene, Position, Genotype, Genotype_with_Description 
-            ORDER BY Gene, Position, Total DESC;";
+            $improvement_status_array = Array();
         }
-        
 
-        $result_arr = DB::connection($db)->select($sql);
-        $result_arr = $this->processAccessionCounts($result_arr);
+        // Table names and datasets
+        $table_names = self::getTableNames($organism, $dataset);
+        $key_column = $table_names["key_column"];
+        $gff_table = $table_names["gff_table"];
+        $accession_mapping_table = $table_names["accession_mapping_table"];
+
+        $gene_result_arr = Array();
+        $allele_catalog_result_arr = Array();
+
+        for ($i = 0; $i < count($gene_array); $i++) {
+
+            try {
+                // Generate SQL string
+                $query_str = "SELECT Chromosome, Start, End, Name AS Gene ";
+                $query_str = $query_str . "FROM " . $db . "." . $gff_table . " ";
+                $query_str = $query_str . "WHERE Name IN ('" . $gene_array[$i] . "');";
+
+                $temp_gene_result_arr = DB::connection($db)->select($query_str);
+
+                // Generate SQL string
+                $query_str = self::getSummarizedDataQueryString(
+                    $organism,
+                    $dataset,
+                    $db,
+                    $gff_table,
+                    $accession_mapping_table,
+                    $gene_array[$i],
+                    $temp_gene_result_arr[0]->Chromosome,
+                    $improvement_status_array,
+                    ""
+                );
+
+                $result_arr = DB::connection($db)->select($query_str);
+
+                array_push($gene_result_arr, $temp_gene_result_arr);
+                array_push($allele_catalog_result_arr, $result_arr);
+            } catch (\Exception $e) {
+            }
+        }
 
         // Package variables that need to go to the view
         $info = [
             'organism' => $organism,
-            'dataset1' => $dataset1,
-            'gene1' => $gene1,
-            'result_arr' => $result_arr,
-            'checkboxes' => $checkboxes,
+            'dataset' => $dataset,
+            'gene_array' => $gene_array,
+            'improvement_status_array' => $improvement_status_array,
+            'gene_result_arr' => $gene_result_arr,
+            'allele_catalog_result_arr' => $allele_catalog_result_arr
         ];
 
         // Return to view
@@ -284,968 +673,749 @@ class KBCToolsAlleleCatalogToolController extends Controller
     }
 
 
-    // getAccessionsByImpStatusGenePositionGenotypeDesc
-    public function GetAccessionsByImpStatusGenePositionGenotypeDesc(Request $request, $organism)
-    {
+    public function QueryMetadataByImprovementStatusAndGenotypeCombination(Request $request, $organism) {
+        // Database
+        $db = "KBC_" . $organism;
+
+        $query_str = "SET SESSION group_concat_max_len = 1000000; ";
+        $set_group_concat_max_len_result = DB::connection($db)->select($query_str);
+
+        $organism = $request->Organism;
         $dataset = $request->Dataset;
         $key = $request->Key;
         $gene = $request->Gene;
+        $chromosome = $request->Chromosome;
         $position = $request->Position;
-        $genotypeWithDescription = $request->GenotypeWithDescription;
-        $organism = $request->Organism;
+        $genotype = $request->Genotype;
+        $genotype_description = $request->Genotype_Description;
 
-        // Database
-        $db = "KBC_" . $organism;
+        // Table names and datasets
+        $table_names = self::getTableNames($organism, $dataset);
+        $key_column = $table_names["key_column"];
+        $gff_table = $table_names["gff_table"];
+        $accession_mapping_table = $table_names["accession_mapping_table"];
 
-        if ($organism == "Zmays") {
-            if (preg_match("/improved.cultivar/i", strval($key))) {
-                $sql = "
-                    SELECT Kernel_Type, Improvement_Status, Country, State, 
-                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                    FROM " . $db . "." . $dataset . "
-                    WHERE (Gene IN ('" . $gene . "'))
-                    AND Position = '" . $position . "'
-                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                    AND Improvement_Status LIKE '%improved%' ORDER BY Accession;
-                ";
-            } else if (preg_match("/landrace/i", strval($key))) {
-                $sql = "
-                    SELECT Kernel_Type, Improvement_Status, Country, State, 
-                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                    FROM " . $db . "." . $dataset . "
-                    WHERE (Gene IN ('" . $gene . "'))
-                    AND Position = '" . $position . "'
-                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                    AND Improvement_Status LIKE '%landrace%' ORDER BY Accession;
-                ";
-            } else if (preg_match("/wild.relative/i", strval($key))) {
-                $sql = "
-                    SELECT Kernel_Type, Improvement_Status, Country, State, 
-                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                    FROM " . $db . "." . $dataset . "
-                    WHERE (Gene IN ('" . $gene . "'))
-                    AND Position = '" . $position . "'
-                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                    AND Improvement_Status LIKE '%wild%' ORDER BY Accession;
-                ";
-            } else if (preg_match("/expvp/i", strval($key))) {
-                $sql = "
-                    SELECT Kernel_Type, Improvement_Status, Country, State, 
-                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                    FROM " . $db . "." . $dataset . "
-                    WHERE (Gene IN ('" . $gene . "'))
-                    AND Position = '" . $position . "'
-                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                    AND Improvement_Status LIKE '%expvp%' ORDER BY Accession;
-                ";
-            } else if (preg_match("/other/i", strval($key))) {
-                $sql = "
-                    SELECT Kernel_Type, Improvement_Status, Country, State, 
-                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                    FROM " . $db . "." . $dataset . "
-                    WHERE (Gene IN ('" . $gene . "'))
-                    AND Position = '" . $position . "'
-                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                    AND Improvement_Status LIKE '%other%' ORDER BY Accession;
-                ";
-            } else if (preg_match("/total/i", strval($key))) {
-                $sql = "
-                    SELECT Kernel_Type, Improvement_Status, Country, State, 
-                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                    FROM " . $db . "." . $dataset . "
-                    WHERE (Gene IN ('" . $gene . "'))
-                    AND Position = '" . $position . "'
-                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                    ORDER BY Accession;
-                ";
-            } else if (preg_match("/unimputed/i", strval($key))) {
-                $sql = "
-                    SELECT Kernel_Type, Improvement_Status, Country, State, 
-                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                    FROM " . $db . "." . $dataset . "
-                    WHERE (Gene IN ('" . $gene . "'))
-                    AND Position = '" . $position . "'
-                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                    AND Imputation = '-'
-                    ORDER BY Accession;
-                ";
-            } else if (preg_match("/imputed/i", strval($key))) {
-                $sql = "
-                    SELECT Kernel_Type, Improvement_Status, Country, State, 
-                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                    FROM " . $db . "." . $dataset . "
-                    WHERE (Gene IN ('" . $gene . "'))
-                    AND Position = '" . $position . "'
-                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                    AND Imputation = '+'
-                    ORDER BY Accession;
-                ";
-            }
-        } else if ($organism == "Athaliana") {
-            if (preg_match("/other/i", strval($key))) {
-                $sql = "
-                    SELECT Admixture_Group, Improvement_Status AS `Group`, Country_Code3 AS Country_Code, Country, State, Latitude, Longitude,
-                    Name, Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                    FROM " . $db . "." . $dataset . "
-                    WHERE (Gene IN ('" . $gene . "'))
-                    AND Position = '" . $position . "'
-                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                    AND Improvement_Status LIKE '%other%' ORDER BY Accession;
-                ";
-            } else if (preg_match("/north/i", strval($key))) {
-                $sql = "
-                    SELECT Admixture_Group, Improvement_Status AS `Group`, Country_Code3 AS Country_Code, Country, State, Latitude, Longitude,
-                    Name, Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                    FROM " . $db . "." . $dataset . "
-                    WHERE (Gene IN ('" . $gene . "'))
-                    AND Position = '" . $position . "'
-                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                    AND Improvement_Status LIKE '%north%' ORDER BY Accession;
-                ";
-            } else if (preg_match("/central/i", strval($key))) {
-                $sql = "
-                    SELECT Admixture_Group, Improvement_Status AS `Group`, Country_Code3 AS Country_Code, Country, State, Latitude, Longitude,
-                    Name, Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                    FROM " . $db . "." . $dataset . "
-                    WHERE (Gene IN ('" . $gene . "'))
-                    AND Position = '" . $position . "'
-                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                    AND Improvement_Status LIKE '%central%' ORDER BY Accession;
-                ";
-            } else if (preg_match("/south/i", strval($key))) {
-                $sql = "
-                    SELECT Admixture_Group, Improvement_Status AS `Group`, Country_Code3 AS Country_Code, Country, State, Latitude, Longitude,
-                    Name, Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                    FROM " . $db . "." . $dataset . "
-                    WHERE (Gene IN ('" . $gene . "'))
-                    AND Position = '" . $position . "'
-                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                    AND Improvement_Status LIKE '%south%' ORDER BY Accession;
-                ";
-            } else if (preg_match("/east/i", strval($key))) {
-                $sql = "
-                    SELECT Admixture_Group, Improvement_Status AS `Group`, Country_Code3 AS Country_Code, Country, State, Latitude, Longitude,
-                    Name, Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                    FROM " . $db . "." . $dataset . "
-                    WHERE (Gene IN ('" . $gene . "'))
-                    AND Position = '" . $position . "'
-                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                    AND Improvement_Status LIKE '%east%' ORDER BY Accession;
-                ";
-            } else if (preg_match("/total/i", strval($key))) {
-                $sql = "
-                    SELECT Admixture_Group, Improvement_Status AS `Group`, Country_Code3 AS Country_Code, Country, State, Latitude, Longitude,
-                    Name, Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                    FROM " . $db . "." . $dataset . "
-                    WHERE (Gene IN ('" . $gene . "'))
-                    AND Position = '" . $position . "'
-                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                    ORDER BY Accession;
-                ";
-            } else if (preg_match("/unimputed/i", strval($key))) {
-                $sql = "
-                    SELECT Admixture_Group, Improvement_Status AS `Group`, Country_Code3 AS Country_Code, Country, State, Latitude, Longitude,
-                    Name, Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                    FROM " . $db . "." . $dataset . "
-                    WHERE (Gene IN ('" . $gene . "'))
-                    AND Position = '" . $position . "'
-                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                    AND Imputation = '-'
-                    ORDER BY Accession;
-                ";
-            } else if (preg_match("/imputed/i", strval($key))) {
-                $sql = "
-                    SELECT Admixture_Group, Improvement_Status AS `Group`, Country_Code3 AS Country_Code, Country, State, Latitude, Longitude,
-                    Name, Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                    FROM " . $db . "." . $dataset . "
-                    WHERE (Gene IN ('" . $gene . "'))
-                    AND Position = '" . $position . "'
-                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                    AND Imputation = '+'
-                    ORDER BY Accession;
-                ";
-            }
-        } else {
-            if (preg_match("/improved.cultivar/i", strval($key))) {
-                $sql = "
-                    SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
-                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                    FROM " . $db . "." . $dataset . "
-                    WHERE (Gene IN ('" . $gene . "'))
-                    AND Position = '" . $position . "'
-                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                    AND Improvement_Status LIKE '%improved%' ORDER BY Accession;
-                ";
-            } else if (preg_match("/landrace/i", strval($key))) {
-                $sql = "
-                    SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
-                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                    FROM " . $db . "." . $dataset . "
-                    WHERE (Gene IN ('" . $gene . "'))
-                    AND Position = '" . $position . "'
-                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                    AND Improvement_Status LIKE '%landrace%' ORDER BY Accession;
-                ";
-            } else if (preg_match("/other/i", strval($key))) {
-                $sql = "
-                    SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
-                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                    FROM " . $db . "." . $dataset . "
-                    WHERE (Gene IN ('" . $gene . "'))
-                    AND Position = '" . $position . "'
-                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                    AND Improvement_Status LIKE '%other%' ORDER BY Accession;
-                ";
-            } else if (preg_match("/north/i", strval($key))) {
-                $sql = "
-                    SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
-                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                    FROM " . $db . "." . $dataset . "
-                    WHERE (Gene IN ('" . $gene . "'))
-                    AND Position = '" . $position . "'
-                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                    AND Improvement_Status LIKE '%north%' ORDER BY Accession;
-                ";
-            } else if (preg_match("/central/i", strval($key))) {
-                $sql = "
-                    SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
-                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                    FROM " . $db . "." . $dataset . "
-                    WHERE (Gene IN ('" . $gene . "'))
-                    AND Position = '" . $position . "'
-                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                    AND Improvement_Status LIKE '%central%' ORDER BY Accession;
-                ";
-            } else if (preg_match("/south/i", strval($key))) {
-                $sql = "
-                    SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
-                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                    FROM " . $db . "." . $dataset . "
-                    WHERE (Gene IN ('" . $gene . "'))
-                    AND Position = '" . $position . "'
-                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                    AND Improvement_Status LIKE '%south%' ORDER BY Accession;
-                ";
-            } else if (preg_match("/east/i", strval($key))) {
-                $sql = "
-                    SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
-                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                    FROM " . $db . "." . $dataset . "
-                    WHERE (Gene IN ('" . $gene . "'))
-                    AND Position = '" . $position . "'
-                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                    AND Improvement_Status LIKE '%east%' ORDER BY Accession;
-                ";
-            } else if (preg_match("/total/i", strval($key))) {
-                $sql = "
-                    SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
-                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                    FROM " . $db . "." . $dataset . "
-                    WHERE (Gene IN ('" . $gene . "'))
-                    AND Position = '" . $position . "'
-                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                    ORDER BY Accession;
-                ";
-            } else if (preg_match("/unimputed/i", strval($key))) {
-                $sql = "
-                    SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
-                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                    FROM " . $db . "." . $dataset . "
-                    WHERE (Gene IN ('" . $gene . "'))
-                    AND Position = '" . $position . "'
-                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                    AND Imputation = '-'
-                    ORDER BY Accession;
-                ";
-            } else if (preg_match("/imputed/i", strval($key))) {
-                $sql = "
-                    SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
-                    Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-                    FROM " . $db . "." . $dataset . "
-                    WHERE (Gene IN ('" . $gene . "'))
-                    AND Position = '" . $position . "'
-                    AND Genotype_with_Description = '" . $genotypeWithDescription . "'
-                    AND Imputation = '+'
-                    ORDER BY Accession;
-                ";
-            }
-        }
-        
-        $result_arr = DB::connection($db)->select($sql);
+        // Generate SQL string
+        $query_str = "SELECT Chromosome, Start, End, Name AS Gene ";
+        $query_str = $query_str . "FROM " . $db . "." . $gff_table . " ";
+        $query_str = $query_str . "WHERE Name IN ('" . $gene . "');";
 
-        return json_encode($result_arr);
-    }
+        $gene_result_arr = DB::connection($db)->select($query_str);
 
-
-    // getImputationData
-    public function getImputationData(Request $request, $organism)
-    {
-        $dataset = $request->Dataset;
-        $accessions = $request->Accession;
-        $gene = $request->Gene;
-        $position = $request->Position;
-        $organism = $request->Organism;
-
-        // Database
-        $db = "KBC_" . $organism;
-
-        $dataset = $dataset . "_Imputation";
-
-        if (is_string($accessions)) {
-            $accession_arr = preg_split("/[;,\n]+/", trim($accessions));
-        } elseif (is_array($accessions)) {
-            $accession_arr = $accessions;
-        } else {
-            exit(0);
-        }
-
-        if (is_string($position)) {
-            $position_arr = preg_split("/[;,\n ]+/", trim($position));
-        } elseif (is_array($position)) {
-            $position_arr = $position;
-        } else {
-            exit(0);
-        }
-
-        $sql = "SELECT * FROM " . $db . "." . $dataset;
-        $sql = $sql . " WHERE (Gene = '" . $gene . "')";
-
-        $sql = $sql . " AND (Accession IN ('";
-        for ($i = 0; $i < count($accession_arr); $i++) {
-            if ($i < (count($accession_arr)-1)) {
-                $sql = $sql . $accession_arr[$i] . "', '";
+        if ($organism == "Zmays" && $dataset == "Maize1210") {
+            // Generate SQL string
+            if ($key == "Total") {
+                $query_str = "WHERE (ACD.Position = '" . $position . "') AND (ACD.Genotype = '" . $genotype . "')";
             } else {
-                $sql = $sql . $accession_arr[$i];
+                $query_str = "WHERE ";
+                $query_str = $query_str . "(ACD." . $key_column . " = '" . $key . "') AND ";
+                $query_str = $query_str . "(ACD.Position = '" . $position . "') AND ";
+                $query_str = $query_str . "(ACD.Genotype = '" . $genotype . "')";
             }
-        }
-        $sql = $sql . "'))";
 
-        $sql = $sql . " AND (Position IN (";
-        for ($i = 0; $i < count($position_arr); $i++) {
-            if ($i < (count($position_arr)-1)) {
-                $sql = $sql . $position_arr[$i] . ", ";
+            $query_str = self::getDataQueryString(
+                $organism,
+                $dataset,
+                $db,
+                $gff_table,
+                $accession_mapping_table,
+                $gene,
+                $gene_result_arr[0]->Chromosome,
+                $query_str
+            );
+
+        } elseif ($organism == "Athaliana" && $dataset == "Arabidopsis1135") {
+            // Generate SQL string
+            if ($key == "Total") {
+                $query_str = "WHERE (ACD.Position = '" . $position . "') AND (ACD.Genotype = '" . $genotype . "')";
             } else {
-                $sql = $sql . $position_arr[$i];
+                $query_str = "WHERE ";
+                $query_str = $query_str . "(ACD." . $key_column . " = '" . $key . "') AND ";
+                $query_str = $query_str . "(ACD.Position = '" . $position . "') AND ";
+                $query_str = $query_str . "(ACD.Genotype = '" . $genotype . "')";
             }
+
+            $query_str = self::getDataQueryString(
+                $organism,
+                $dataset,
+                $db,
+                $gff_table,
+                $accession_mapping_table,
+                $gene,
+                $gene_result_arr[0]->Chromosome,
+                $query_str
+            );
+
+        } elseif ($organism == "Osativa" && $dataset == "Rice166") {
+            // Generate SQL string
+            if ($key == "Total") {
+                $query_str = "WHERE (ACD.Position = '" . $position . "') AND (ACD.Genotype = '" . $genotype . "')";
+            } else {
+                $query_str = "WHERE ";
+                $query_str = $query_str . "(ACD." . $key_column . " = '" . $key . "') AND ";
+                $query_str = $query_str . "(ACD.Position = '" . $position . "') AND ";
+                $query_str = $query_str . "(ACD.Genotype = '" . $genotype . "')";
+            }
+
+            $query_str = self::getDataQueryString(
+                $organism,
+                $dataset,
+                $db,
+                $gff_table,
+                $accession_mapping_table,
+                $gene,
+                $gene_result_arr[0]->Chromosome,
+                $query_str
+            );
+
+        } elseif ($organism == "Osativa" && $dataset == "Rice3000") {
+            // Generate SQL string
+            if ($key == "Total") {
+                $query_str = "WHERE (ACD.Position = '" . $position . "') AND (ACD.Genotype = '" . $genotype . "')";
+            } else {
+                $query_str = "WHERE ";
+                $query_str = $query_str . "(ACD." . $key_column . " = '" . $key . "') AND ";
+                $query_str = $query_str . "(ACD.Position = '" . $position . "') AND ";
+                $query_str = $query_str . "(ACD.Genotype = '" . $genotype . "')";
+            }
+
+            $query_str = self::getDataQueryString(
+                $organism,
+                $dataset,
+                $db,
+                $gff_table,
+                $accession_mapping_table,
+                $gene,
+                $gene_result_arr[0]->Chromosome,
+                $query_str
+            );
         }
-        $sql = $sql . "))";
 
-        $sql = $sql . " ORDER BY Accession, Position;";
-
-        $result_arr = DB::connection($db)->select($sql);
+        $result_arr = DB::connection($db)->select($query_str);
 
         return json_encode($result_arr);
     }
 
 
-    public function DownloadAllCountsByGene(Request $request, $organism)
-    {
+    public function QueryAllCountsByGene(Request $request, $organism) {
+        // Database
+        $db = "KBC_" . $organism;
+
+        $query_str = "SET SESSION group_concat_max_len = 1000000; ";
+        $set_group_concat_max_len_result = DB::connection($db)->select($query_str);
+
+        $dataset = $request->Dataset;
         $gene = $request->Gene;
-        $dataset = $request->Dataset;
-        $organism = $request->Organism;
-        $checkboxes = $request->Checkboxes;
+        $improvement_status = $request->Improvement_Status_Array;
 
-        // Database
-        $db = "KBC_" . $organism;
-
-        // Parse genes and checkboxes
-        if (is_string($gene)) {
-            $gene_arr = preg_split("/[;, \n]+/", trim($gene));
-        } elseif (is_array($gene)) {
-            $gene_arr = $gene;
-        }
-        if (is_string($checkboxes)) {
-            $checkboxes = preg_split("/[;, \n]+/", trim($checkboxes));
-        } elseif (is_array($checkboxes)) {
-            $checkboxes = $checkboxes;
-        }
-        for ($i = 0; $i < count($gene_arr); $i++) {
-            $gene_arr[$i] = trim($gene_arr[$i]);
-        }
-
-        // Construct sql then make query
-        if ($organism == "Zmays") {
-            $sql = "SELECT ";
-
-            if(in_array("Improved_Cultivar", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'Improved', 1, null)) AS Improved_Cultivar, ";
-            }
-            if(in_array("Landrace", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'Landrace', 1, null)) AS Landrace, ";
-            }
-            if(in_array("Wild_Relative", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'Wild Relative', 1, null)) AS Wild_Relative, ";
-            }
-            if(in_array("exPVP", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'exPVP', 1, null)) AS exPVP, ";
-            }
-            if(in_array("Other", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'Other', 1, null)) AS Other, ";
-            }
-            $sql = $sql . "COUNT(IF(Improvement_Status IN ('Improved', 'Landrace', 'Wild Relative', 'exPVP', 'Other') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
-            if(in_array("Imputed", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Imputation = '+', 1, null)) AS Imputed, ";
-            }
-            if(in_array("Unimputed", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Imputation = '-', 1, null)) AS Unimputed,";
-            }
-
-            $sql = $sql . "Gene, Position, Genotype, Genotype_with_Description 
-            FROM " . $db . "." . $dataset . " 
-            WHERE (Gene IN ('";
-            for ($i = 0; $i < count($gene_arr); $i++) {
-                if ($i < (count($gene_arr) - 1)) {
-                    $sql = $sql . $gene_arr[$i] . "', '";
-                } else {
-                    $sql = $sql . $gene_arr[$i];
+        if (isset($improvement_status)) {
+            if (is_string($improvement_status)) {
+                $improvement_status_array = preg_split("/[;, \n]+/", $improvement_status);
+                for ($i = 0; $i < count($improvement_status_array); $i++) {
+                    $improvement_status_array[$i] = trim($improvement_status_array[$i]);
+                }
+            } elseif (is_array($improvement_status)) {
+                $improvement_status_array = $improvement_status;
+                for ($i = 0; $i < count($improvement_status_array); $i++) {
+                    $improvement_status_array[$i] = trim($improvement_status_array[$i]);
                 }
             }
-            $sql = $sql . "')) 
-            GROUP BY Gene, Position, Genotype, Genotype_with_Description 
-            ORDER BY Gene, Position, Total DESC;";
-        } else if ($organism == "Athaliana") {
-            $sql = "SELECT ";
-
-            if(in_array("North", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'North', 1, null)) AS North, ";
-            }
-            if(in_array("Central", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'Central', 1, null)) AS Central, ";
-            }
-            if(in_array("South", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'South', 1, null)) AS South, ";
-            }
-            if(in_array("East", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'East', 1, null)) AS East, ";
-            }
-            if(in_array("Other", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'Other', 1, null)) AS Other, ";
-            }
-            $sql = $sql . "COUNT(IF(Improvement_Status IN ('North', 'Central', 'South', 'East', 'Other') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
-            if(in_array("Imputed", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Imputation = '+', 1, null)) AS Imputed, ";
-            }
-            if(in_array("Unimputed", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, ";
-            }
-
-            $sql = $sql . "Gene, Position, Genotype, Genotype_with_Description 
-            FROM " . $db . "." . $dataset . " 
-            WHERE (Gene IN ('";
-            for ($i = 0; $i < count($gene_arr); $i++) {
-                if ($i < (count($gene_arr) - 1)) {
-                    $sql = $sql . $gene_arr[$i] . "', '";
-                } else {
-                    $sql = $sql . $gene_arr[$i];
-                }
-            }
-            $sql = $sql . "')) 
-            GROUP BY Gene, Position, Genotype, Genotype_with_Description 
-            ORDER BY Gene, Position, Total DESC;";
         } else {
-            $sql = "SELECT COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other', 'North', 'Central', 'South', 'East') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
-            
-            if(in_array("Imputed", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Imputation = '+', 1, null)) AS Imputed, ";
-            }
-            if(in_array("Unimputed", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, ";
-            }
-
-            $sql = $sql . "Gene, Position, Genotype, Genotype_with_Description 
-            FROM " . $db . "." . $dataset . " 
-            WHERE (Gene IN ('";
-            for ($i = 0; $i < count($gene_arr); $i++) {
-                if ($i < (count($gene_arr) - 1)) {
-                    $sql = $sql . $gene_arr[$i] . "', '";
-                } else {
-                    $sql = $sql . $gene_arr[$i];
-                }
-            }
-            $sql = $sql . "')) 
-            GROUP BY Gene, Position, Genotype, Genotype_with_Description 
-            ORDER BY Gene, Position, Total DESC;";
+            $improvement_status_array = Array();
         }
-        
 
-        $result_arr = DB::connection($db)->select($sql);
+        // Table names and datasets
+        $table_names = self::getTableNames($organism, $dataset);
+        $key_column = $table_names["key_column"];
+        $gff_table = $table_names["gff_table"];
+        $accession_mapping_table = $table_names["accession_mapping_table"];
+
+        // Generate SQL string
+        $query_str = "SELECT Chromosome, Start, End, Name AS Gene ";
+        $query_str = $query_str . "FROM " . $db . "." . $gff_table . " ";
+        $query_str = $query_str . "WHERE Name IN ('" . $gene . "');";
+
+        $gene_result_arr = DB::connection($db)->select($query_str);
+
+        $query_str = self::getSummarizedDataQueryString(
+            $organism,
+            $dataset,
+            $db,
+            $gff_table,
+            $accession_mapping_table,
+            $gene,
+            $gene_result_arr[0]->Chromosome,
+            $improvement_status_array,
+            ""
+        );
+
+        $result_arr = DB::connection($db)->select($query_str);
 
         return json_encode($result_arr);
     }
 
-    public function DownloadAllByGene(Request $request, $organism)
-    {
+
+    public function QueryAllByGene(Request $request, $organism) {
+        // Database
+        $db = "KBC_" . $organism;
+
+        $dataset = $request->Dataset;
         $gene = $request->Gene;
-        $dataset = $request->Dataset;
-        $organism = $request->Organism;
-        $checkboxes = $request->Checkboxes;
+        $improvement_status = $request->Improvement_Status_Array;
 
+        if (is_string($improvement_status)) {
+            $improvement_status_array = preg_split("/[;, \n]+/", $improvement_status);
+            for ($i = 0; $i < count($improvement_status_array); $i++) {
+                $improvement_status_array[$i] = trim($improvement_status_array[$i]);
+            }
+        } elseif (is_array($improvement_status)) {
+            $improvement_status_array = $improvement_status;
+            for ($i = 0; $i < count($improvement_status_array); $i++) {
+                $improvement_status_array[$i] = trim($improvement_status_array[$i]);
+            }
+        }
+
+        // Table names and datasets
+        $table_names = self::getTableNames($organism, $dataset);
+        $key_column = $table_names["key_column"];
+        $gff_table = $table_names["gff_table"];
+        $accession_mapping_table = $table_names["accession_mapping_table"];
+
+        // Generate SQL string
+        $query_str = "SELECT Chromosome, Start, End, Name AS Gene ";
+        $query_str = $query_str . "FROM " . $db . "." . $gff_table . " ";
+        $query_str = $query_str . "WHERE Name IN ('" . $gene . "');";
+
+        $gene_result_arr = DB::connection($db)->select($query_str);
+
+        $query_str = self::getDataQueryString(
+            $organism,
+            $dataset,
+            $db,
+            $gff_table,
+            $accession_mapping_table,
+            $gene,
+            $gene_result_arr[0]->Chromosome,
+            ""
+        );
+
+        $result_arr = DB::connection($db)->select($query_str);
+
+        for ($i = 0; $i < count($result_arr); $i++) {
+            if (preg_match("/\+/i", $result_arr[$i]->Imputation)) {
+                $result_arr[$i]->Imputation = "+";
+            } else{
+                $result_arr[$i]->Imputation = "";
+            }
+        }
+
+        return json_encode($result_arr);
+    }
+
+
+    public function QueryAllCountsByMultipleGenes(Request $request, $organism) {
         // Database
         $db = "KBC_" . $organism;
 
-        // Parse genes
+        $query_str = "SET SESSION group_concat_max_len = 1000000; ";
+        $set_group_concat_max_len_result = DB::connection($db)->select($query_str);
+
+        $dataset = $request->Dataset;
+        $gene = $request->Gene_Array;
+        $improvement_status = $request->Improvement_Status_Array;
+
         if (is_string($gene)) {
-            $gene_arr = preg_split("/[;, \n]+/", trim($gene));
+            $gene_array = preg_split("/[;, \n]+/", $gene);
+            for ($i = 0; $i < count($gene_array); $i++) {
+                $gene_array[$i] = trim($gene_array[$i]);
+            }
         } elseif (is_array($gene)) {
-            $gene_arr = $gene;
-        }
-        if (is_string($checkboxes)) {
-            $checkboxes = preg_split("/[;, \n]+/", trim($checkboxes));
-        } elseif (is_array($checkboxes)) {
-            $checkboxes = $checkboxes;
-        }
-        for ($i = 0; $i < count($gene_arr); $i++) {
-            $gene_arr[$i] = trim($gene_arr[$i]);
-        }
-        for ($i = 0; $i < count($checkboxes); $i++) {
-            $checkboxes[$i] = trim($checkboxes[$i]);
+            $gene_array = $gene;
+            for ($i = 0; $i < count($gene_array); $i++) {
+                $gene_array[$i] = trim($gene_array[$i]);
+            }
         }
 
-        // Construct sql then make query
-        if ($organism == "Zmays") {
-            $sql = "SELECT Kernel_Type, Improvement_Status, Country, State, 
-            Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation
-            FROM " . $db . "." . $dataset . "
-            WHERE ((Gene IN ('";
-            for ($i = 0; $i < count($gene_arr); $i++) {
-                if ($i < (count($gene_arr) - 1)) {
-                    $sql = $sql . $gene_arr[$i] . "', '";
-                } else {
-                    $sql = $sql . $gene_arr[$i];
-                }
+        if (is_string($improvement_status)) {
+            $improvement_status_array = preg_split("/[;, \n]+/", $improvement_status);
+            for ($i = 0; $i < count($improvement_status_array); $i++) {
+                $improvement_status_array[$i] = trim($improvement_status_array[$i]);
             }
-            $sql = $sql . "')));";
-        } else if ($organism == "Athaliana") {
-            $sql = "SELECT Admixture_Group, Improvement_Status AS `Group`, Country_Code3 AS Country_Code, Country, State, 
-            Latitude, Longitude, Name, Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-            FROM " . $db . "." . $dataset . "
-            WHERE ((Gene IN ('";
-            for ($i = 0; $i < count($gene_arr); $i++) {
-                if ($i < (count($gene_arr) - 1)) {
-                    $sql = $sql . $gene_arr[$i] . "', '";
-                } else {
-                    $sql = $sql . $gene_arr[$i];
-                }
+        } elseif (is_array($improvement_status)) {
+            $improvement_status_array = $improvement_status;
+            for ($i = 0; $i < count($improvement_status_array); $i++) {
+                $improvement_status_array[$i] = trim($improvement_status_array[$i]);
             }
-            $sql = $sql . "')));";
-        } else {
-            $sql = "SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
-            Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation
-            FROM " . $db . "." . $dataset . "
-            WHERE ((Gene IN ('";
-            for ($i = 0; $i < count($gene_arr); $i++) {
-                if ($i < (count($gene_arr) - 1)) {
-                    $sql = $sql . $gene_arr[$i] . "', '";
-                } else {
-                    $sql = $sql . $gene_arr[$i];
-                }
-            }
-            $sql = $sql . "')));";
         }
 
-        $result_arr = DB::connection($db)->select($sql);
+        // Table names and datasets
+        $table_names = self::getTableNames($organism, $dataset);
+        $key_column = $table_names["key_column"];
+        $gff_table = $table_names["gff_table"];
+        $accession_mapping_table = $table_names["accession_mapping_table"];
 
-        return json_encode($result_arr);
+        for ($i = 0; $i < count($gene_array); $i++) {
+
+            // Generate SQL string
+            $query_str = "SELECT Chromosome, Start, End, Name AS Gene ";
+            $query_str = $query_str . "FROM " . $db . "." . $gff_table . " ";
+            $query_str = $query_str . "WHERE Name IN ('" . $gene_array[$i] . "');";
+
+            $temp_gene_result_arr = DB::connection($db)->select($query_str);
+
+            $query_str = self::getSummarizedDataQueryString(
+                $organism,
+                $dataset,
+                $db,
+                $gff_table,
+                $accession_mapping_table,
+                $gene_array[$i],
+                $temp_gene_result_arr[0]->Chromosome,
+                $improvement_status_array,
+                ""
+            );
+
+            $result_arr = DB::connection($db)->select($query_str);
+
+            if (!isset($allele_catalog_result_arr)){
+                $allele_catalog_result_arr = (array) $result_arr;
+            } else {
+                $allele_catalog_result_arr = array_merge($allele_catalog_result_arr, (array) $result_arr);
+            }
+        }
+
+        return json_encode($allele_catalog_result_arr);
     }
 
-    public function DownloadAllCountsByMultipleGenes(Request $request, $organism)
-    {
-        $genes = $request->Genes;
-        $dataset = $request->Dataset;
-        $organism = $request->Organism;
-        $checkboxes = $request->Checkboxes;
 
+    public function QueryAllByMultipleGenes(Request $request, $organism) {
         // Database
         $db = "KBC_" . $organism;
 
-        // Parse genes and checkboxes
-        if (is_string($genes)) {
-            $gene_arr = preg_split("/[;, \n]+/", trim($genes));
-        } elseif (is_array($genes)) {
-            $gene_arr = $genes;
-        }
-        if (is_string($checkboxes)) {
-            $checkboxes = preg_split("/[;, \n]+/", trim($checkboxes));
-        } elseif (is_array($checkboxes)) {
-            $checkboxes = $checkboxes;
-        }
-        for ($i = 0; $i < count($gene_arr); $i++) {
-            $gene_arr[$i] = trim($gene_arr[$i]);
-        }
-
-        // Construct sql then make query
-        if ($organism == "Zmays") {
-            $sql = "SELECT ";
-
-            if(in_array("Improved_Cultivar", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'Improved', 1, null)) AS Improved_Cultivar, ";
-            }
-            if(in_array("Landrace", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'Landrace', 1, null)) AS Landrace, ";
-            }
-            if(in_array("Wild_Relative", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'Wild Relative', 1, null)) AS Wild_Relative, ";
-            }
-            if(in_array("exPVP", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'exPVP', 1, null)) AS exPVP, ";
-            }
-            if(in_array("Other", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'Other', 1, null)) AS Other, ";
-            }
-            $sql = $sql . "COUNT(IF(Improvement_Status IN ('Improved', 'Landrace', 'Wild Relative', 'exPVP', 'Other') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
-            if(in_array("Imputed", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Imputation = '+', 1, null)) AS Imputed, ";
-            }
-            if(in_array("Unimputed", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Imputation = '-', 1, null)) AS Unimputed,";
-            }
-
-            $sql = $sql . "Gene, Position, Genotype, Genotype_with_Description 
-            FROM " . $db . "." . $dataset . " 
-            WHERE (Gene IN ('";
-            for ($i = 0; $i < count($gene_arr); $i++) {
-                if ($i < (count($gene_arr) - 1)) {
-                    $sql = $sql . $gene_arr[$i] . "', '";
-                } else {
-                    $sql = $sql . $gene_arr[$i];
-                }
-            }
-            $sql = $sql . "')) 
-            GROUP BY Gene, Position, Genotype, Genotype_with_Description 
-            ORDER BY Gene, Position, Total DESC;";
-        } else if ($organism == "Athaliana") {
-            $sql = "SELECT ";
-
-            if(in_array("North", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'North', 1, null)) AS North, ";
-            }
-            if(in_array("Central", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'Central', 1, null)) AS Central, ";
-            }
-            if(in_array("South", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'South', 1, null)) AS South, ";
-            }
-            if(in_array("East", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'East', 1, null)) AS East, ";
-            }
-            if(in_array("Other", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Improvement_Status = 'Other', 1, null)) AS Other, ";
-            }
-            $sql = $sql . "COUNT(IF(Improvement_Status IN ('North', 'Central', 'South', 'East', 'Other') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
-            if(in_array("Imputed", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Imputation = '+', 1, null)) AS Imputed, ";
-            }
-            if(in_array("Unimputed", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, ";
-            }
-
-            $sql = $sql . "Gene, Position, Genotype, Genotype_with_Description 
-            FROM " . $db . "." . $dataset . " 
-            WHERE (Gene IN ('";
-            for ($i = 0; $i < count($gene_arr); $i++) {
-                if ($i < (count($gene_arr) - 1)) {
-                    $sql = $sql . $gene_arr[$i] . "', '";
-                } else {
-                    $sql = $sql . $gene_arr[$i];
-                }
-            }
-            $sql = $sql . "')) 
-            GROUP BY Gene, Position, Genotype, Genotype_with_Description 
-            ORDER BY Gene, Position, Total DESC;";
-        } else {
-            $sql = "SELECT COUNT(IF(Improvement_Status IN ('Improved', 'Cultivar', 'Elite', 'Landrace', 'Genetic', 'Other', 'North', 'Central', 'South', 'East') OR Improvement_Status IS NULL, 1, null)) AS Total, ";
-            
-            if(in_array("Imputed", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Imputation = '+', 1, null)) AS Imputed, ";
-            }
-            if(in_array("Unimputed", $checkboxes)) {
-                $sql = $sql . "COUNT(IF(Imputation = '-', 1, null)) AS Unimputed, ";
-            }
-
-            $sql = $sql . "Gene, Position, Genotype, Genotype_with_Description 
-            FROM " . $db . "." . $dataset . " 
-            WHERE (Gene IN ('";
-            for ($i = 0; $i < count($gene_arr); $i++) {
-                if ($i < (count($gene_arr) - 1)) {
-                    $sql = $sql . $gene_arr[$i] . "', '";
-                } else {
-                    $sql = $sql . $gene_arr[$i];
-                }
-            }
-            $sql = $sql . "')) 
-            GROUP BY Gene, Position, Genotype, Genotype_with_Description 
-            ORDER BY Gene, Position, Total DESC;";
-        }
-        
-
-        $result_arr = DB::connection($db)->select($sql);
-
-        return json_encode($result_arr);
-    }
-
-    public function DownloadAllByMultipleGenes(Request $request, $organism)
-    {
-        $genes = $request->Genes;
         $dataset = $request->Dataset;
-        $organism = $request->Organism;
-        $checkboxes = $request->Checkboxes;
+        $gene = $request->Gene_Array;
+        $improvement_status = $request->Improvement_Status_Array;
 
-        // Database
-        $db = "KBC_" . $organism;
-
-        // Parse genes
-        if (is_string($genes)) {
-            $gene_arr = preg_split("/[;, \n]+/", trim($genes));
-        } elseif (is_array($genes)) {
-            $gene_arr = $genes;
-        }
-        if (is_string($checkboxes)) {
-            $checkboxes = preg_split("/[;, \n]+/", trim($checkboxes));
-        } elseif (is_array($checkboxes)) {
-            $checkboxes = $checkboxes;
-        }
-        for ($i = 0; $i < count($gene_arr); $i++) {
-            $gene_arr[$i] = trim($gene_arr[$i]);
-        }
-        for ($i = 0; $i < count($checkboxes); $i++) {
-            $checkboxes[$i] = trim($checkboxes[$i]);
-        }
-
-        // Construct sql then make query
-        if ($organism == "Zmays") {
-            $sql = "SELECT Kernel_Type, Improvement_Status, Country, State, 
-            Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation
-            FROM " . $db . "." . $dataset . "
-            WHERE ((Gene IN ('";
-            for ($i = 0; $i < count($gene_arr); $i++) {
-                if ($i < (count($gene_arr) - 1)) {
-                    $sql = $sql . $gene_arr[$i] . "', '";
-                } else {
-                    $sql = $sql . $gene_arr[$i];
-                }
+        if (is_string($gene)) {
+            $gene_array = preg_split("/[;, \n]+/", $gene);
+            for ($i = 0; $i < count($gene_array); $i++) {
+                $gene_array[$i] = trim($gene_array[$i]);
             }
-            $sql = $sql . "')));";
-        } else if ($organism == "Athaliana") {
-            $sql = "SELECT Admixture_Group, Improvement_Status AS `Group`, Country_Code3 AS Country_Code, Country, State, 
-            Latitude, Longitude, Name, Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-            FROM " . $db . "." . $dataset . "
-            WHERE ((Gene IN ('";
-            for ($i = 0; $i < count($gene_arr); $i++) {
-                if ($i < (count($gene_arr) - 1)) {
-                    $sql = $sql . $gene_arr[$i] . "', '";
-                } else {
-                    $sql = $sql . $gene_arr[$i];
-                }
+        } elseif (is_array($gene)) {
+            $gene_array = $gene;
+            for ($i = 0; $i < count($gene_array); $i++) {
+                $gene_array[$i] = trim($gene_array[$i]);
             }
-            $sql = $sql . "')));";
-        } else {
-            $sql = "SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
-            Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation
-            FROM " . $db . "." . $dataset . "
-            WHERE ((Gene IN ('";
-            for ($i = 0; $i < count($gene_arr); $i++) {
-                if ($i < (count($gene_arr) - 1)) {
-                    $sql = $sql . $gene_arr[$i] . "', '";
-                } else {
-                    $sql = $sql . $gene_arr[$i];
-                }
-            }
-            $sql = $sql . "')));";
         }
 
-        $result_arr = DB::connection($db)->select($sql);
+        if (is_string($improvement_status)) {
+            $improvement_status_array = preg_split("/[;, \n]+/", $improvement_status);
+            for ($i = 0; $i < count($improvement_status_array); $i++) {
+                $improvement_status_array[$i] = trim($improvement_status_array[$i]);
+            }
+        } elseif (is_array($improvement_status)) {
+            $improvement_status_array = $improvement_status;
+            for ($i = 0; $i < count($improvement_status_array); $i++) {
+                $improvement_status_array[$i] = trim($improvement_status_array[$i]);
+            }
+        }
 
-        return json_encode($result_arr);
+        // Table names and datasets
+        $table_names = self::getTableNames($organism, $dataset);
+        $key_column = $table_names["key_column"];
+        $gff_table = $table_names["gff_table"];
+        $accession_mapping_table = $table_names["accession_mapping_table"];
+
+        for ($i = 0; $i < count($gene_array); $i++) {
+
+            // Generate SQL string
+            $query_str = "SELECT Chromosome, Start, End, Name AS Gene ";
+            $query_str = $query_str . "FROM " . $db . "." . $gff_table . " ";
+            $query_str = $query_str . "WHERE Name IN ('" . $gene_array[$i] . "');";
+
+            $temp_gene_result_arr = DB::connection($db)->select($query_str);
+
+            $query_str = self::getDataQueryString(
+                $organism,
+                $dataset,
+                $db,
+                $gff_table,
+                $accession_mapping_table,
+                $gene_array[$i],
+                $temp_gene_result_arr[0]->Chromosome,
+                ""
+            );
+
+            $result_arr = DB::connection($db)->select($query_str);
+
+            if (!isset($allele_catalog_result_arr)){
+                $allele_catalog_result_arr = (array) $result_arr;
+            } else {
+                $allele_catalog_result_arr = array_merge($allele_catalog_result_arr, (array) $result_arr);
+            }
+
+        }
+
+        for ($i = 0; $i < count($allele_catalog_result_arr); $i++) {
+            if (preg_match("/\+/i", $allele_catalog_result_arr[$i]->Imputation)) {
+                $allele_catalog_result_arr[$i]->Imputation = "+";
+            } else{
+                $allele_catalog_result_arr[$i]->Imputation = "";
+            }
+        }
+
+        return json_encode($allele_catalog_result_arr);
     }
 
 
-    public function ViewAllByAccessionAndGenePage(Request $request, $organism)
-    {
+    public function ViewAllByAccessionsAndGenePage(Request $request, $organism) {
         $admin_db_wapper = new DBAdminWrapperClass;
 
         // Database
         $db = "KBC_" . $organism;
 
-        $dataset2 = $request->dataset2;
-        $accession = $request->accession;
-        $gene2 = $request->gene2;
+        $query_str = "SET SESSION group_concat_max_len = 1000000; ";
+        $set_group_concat_max_len_result = DB::connection($db)->select($query_str);
 
-        // Parse accessions
-        $accession_arr = preg_split("/[;,\n]+/", $accession);
-        for ($i = 0; $i < count($accession_arr); $i++) {
-            $accession_arr[$i] = trim($accession_arr[$i]);
+        $dataset = $request->dataset_2;
+        $gene = $request->gene_2;
+        $accession = $request->accession_2;
+
+        if (is_string($accession)) {
+            $accession_array = preg_split("/[;, \n]+/", $accession);
+            for ($i = 0; $i < count($accession_array); $i++) {
+                $accession_array[$i] = trim($accession_array[$i]);
+            }
+        } elseif (is_array($accession)) {
+            $accession_array = $accession;
+            for ($i = 0; $i < count($accession_array); $i++) {
+                $accession_array[$i] = trim($accession_array[$i]);
+            }
         }
 
-        // Construct sql then make query
-        if ($organism == "Zmays") {
-            $sql = "
-            SELECT Kernel_Type, Improvement_Status, Country, State, 
-            Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-            FROM " . $db . "." . $dataset2 .
-                " WHERE (Gene IN ( '" . $gene2 . "' )) AND (Accession IN ('";
-            for ($i = 0; $i < count($accession_arr); $i++) {
-                if ($i < (count($accession_arr) - 1)) {
-                    $sql = $sql . $accession_arr[$i] . "', '";
-                } else {
-                    $sql = $sql . $accession_arr[$i];
+        // Table names and datasets
+        $table_names = self::getTableNames($organism, $dataset);
+        $key_column = $table_names["key_column"];
+        $gff_table = $table_names["gff_table"];
+        $accession_mapping_table = $table_names["accession_mapping_table"];
+
+        try{
+            // Generate SQL string
+            $query_str = "SELECT Chromosome, Start, End, Name AS Gene ";
+            $query_str = $query_str . "FROM " . $db . "." . $gff_table . " ";
+            $query_str = $query_str . "WHERE Name IN ('" . $gene . "');";
+
+            $gene_result_arr = DB::connection($db)->select($query_str);
+
+            if ($organism == "Zmays" && $dataset == "Maize1210") {
+                // Generate SQL string
+                $query_str = "WHERE (ACD.Accession IN ('";
+                for ($i = 0; $i < count($accession_array); $i++) {
+                    if($i < (count($accession_array)-1)){
+                        $query_str = $query_str . trim($accession_array[$i]) . "', '";
+                    } elseif ($i == (count($accession_array)-1)) {
+                        $query_str = $query_str . trim($accession_array[$i]);
+                    }
                 }
-            }
-            $sql = $sql . "'));";
-        } else if ($organism == "Athaliana") {
-            $sql = "
-            SELECT Admixture_Group, Improvement_Status AS `Group`, Country_Code3 AS Country_Code, Country, State, 
-            Latitude, Longitude, Name, Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-            FROM " . $db . "." . $dataset2 .
-                " WHERE (Gene IN ( '" . $gene2 . "' )) AND (Accession IN ('";
-            for ($i = 0; $i < count($accession_arr); $i++) {
-                if ($i < (count($accession_arr) - 1)) {
-                    $sql = $sql . $accession_arr[$i] . "', '";
-                } else {
-                    $sql = $sql . $accession_arr[$i];
+                $query_str = $query_str . "')) ";
+                $query_str = $query_str . "OR (ACD.Panzea_Accession IN ('";
+                for ($i = 0; $i < count($accession_array); $i++) {
+                    if($i < (count($accession_array)-1)){
+                        $query_str = $query_str . trim($accession_array[$i]) . "', '";
+                    } elseif ($i == (count($accession_array)-1)) {
+                        $query_str = $query_str . trim($accession_array[$i]);
+                    }
                 }
-            }
-            $sql = $sql . "'));";
-        } else {
-            $sql = "
-            SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
-            Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-            FROM " . $db . "." . $dataset2 .
-                " WHERE (Gene IN ( '" . $gene2 . "' )) AND (Accession IN ('";
-            for ($i = 0; $i < count($accession_arr); $i++) {
-                if ($i < (count($accession_arr) - 1)) {
-                    $sql = $sql . $accession_arr[$i] . "', '";
-                } else {
-                    $sql = $sql . $accession_arr[$i];
+                $query_str = $query_str . "')) ";
+
+                $query_str = self::getDataQueryString(
+                    $organism,
+                    $dataset,
+                    $db,
+                    $gff_table,
+                    $accession_mapping_table,
+                    $gene,
+                    $gene_result_arr[0]->Chromosome,
+                    $query_str
+                );
+
+            } elseif ($organism == "Athaliana" && $dataset == "Arabidopsis1135") {
+                // Generate SQL string
+                $query_str = "WHERE (ACD.Accession IN ('";
+                for ($i = 0; $i < count($accession_array); $i++) {
+                    if($i < (count($accession_array)-1)){
+                        $query_str = $query_str . trim($accession_array[$i]) . "', '";
+                    } elseif ($i == (count($accession_array)-1)) {
+                        $query_str = $query_str . trim($accession_array[$i]);
+                    }
                 }
-            }
-            $sql = $sql . "'));";
-        }
-
-        $result_arr = DB::connection($db)->select($sql);
-
-
-        // Add imputation information
-        $dataset = $dataset2 . "_Imputation";
-
-        if(isset($result_arr) && !empty($result_arr)) {
-            if (count($result_arr) > 0) {
-                $position = $result_arr[0]->Position;
-                if (is_string($position)) {
-                    $position_arr = preg_split("/[;,\n ]+/", trim($position));
-                } elseif (is_array($position)) {
-                    $position_arr = $position;
-                } else {
-                    exit(0);
+                $query_str = $query_str . "')) ";
+                $query_str = $query_str . "OR (ACD.TAIR_Accession IN ('";
+                for ($i = 0; $i < count($accession_array); $i++) {
+                    if($i < (count($accession_array)-1)){
+                        $query_str = $query_str . trim($accession_array[$i]) . "', '";
+                    } elseif ($i == (count($accession_array)-1)) {
+                        $query_str = $query_str . trim($accession_array[$i]);
+                    }
                 }
+                $query_str = $query_str . "')) ";
+                $query_str = $query_str . "OR (ACD.Name IN ('";
+                for ($i = 0; $i < count($accession_array); $i++) {
+                    if($i < (count($accession_array)-1)){
+                        $query_str = $query_str . trim($accession_array[$i]) . "', '";
+                    } elseif ($i == (count($accession_array)-1)) {
+                        $query_str = $query_str . trim($accession_array[$i]);
+                    }
+                }
+                $query_str = $query_str . "')) ";
+
+                $query_str = self::getDataQueryString(
+                    $organism,
+                    $dataset,
+                    $db,
+                    $gff_table,
+                    $accession_mapping_table,
+                    $gene,
+                    $gene_result_arr[0]->Chromosome,
+                    $query_str
+                );
+
+            } elseif ($organism == "Osativa" && $dataset == "Rice166") {
+                // Generate SQL string
+                $query_str = "WHERE (ACD.Accession IN ('";
+                for ($i = 0; $i < count($accession_array); $i++) {
+                    if($i < (count($accession_array)-1)){
+                        $query_str = $query_str . trim($accession_array[$i]) . "', '";
+                    } elseif ($i == (count($accession_array)-1)) {
+                        $query_str = $query_str . trim($accession_array[$i]);
+                    }
+                }
+                $query_str = $query_str . "')) ";
+
+                $query_str = self::getDataQueryString(
+                    $organism,
+                    $dataset,
+                    $db,
+                    $gff_table,
+                    $accession_mapping_table,
+                    $gene,
+                    $gene_result_arr[0]->Chromosome,
+                    $query_str
+                );
+
+            } elseif ($organism == "Osativa" && $dataset == "Rice3000") {
+                // Generate SQL string
+                $query_str = "WHERE (ACD.Accession IN ('";
+                for ($i = 0; $i < count($accession_array); $i++) {
+                    if($i < (count($accession_array)-1)){
+                        $query_str = $query_str . trim($accession_array[$i]) . "', '";
+                    } elseif ($i == (count($accession_array)-1)) {
+                        $query_str = $query_str . trim($accession_array[$i]);
+                    }
+                }
+                $query_str = $query_str . "')) ";
+
+                $query_str = self::getDataQueryString(
+                    $organism,
+                    $dataset,
+                    $db,
+                    $gff_table,
+                    $accession_mapping_table,
+                    $gene,
+                    $gene_result_arr[0]->Chromosome,
+                    $query_str
+                );
+
             }
+
+            $result_arr = DB::connection($db)->select($query_str);
+        } catch (\Exception $e) {
+            $result_arr = (object)Array();
         }
-
-        $sql = "SELECT * FROM " . $db . "." . $dataset;
-        $sql = $sql . " WHERE (Gene = '" . $gene2 . "')";
-
-        $sql = $sql . " AND (Accession IN ('";
-        for ($i = 0; $i < count($accession_arr); $i++) {
-            if ($i < (count($accession_arr)-1)) {
-                $sql = $sql . $accession_arr[$i] . "', '";
-            } else {
-                $sql = $sql . $accession_arr[$i];
-            }
-        }
-        $sql = $sql . "'))";
-
-        $sql = $sql . " AND (Position IN (";
-        for ($i = 0; $i < count($position_arr); $i++) {
-            if ($i < (count($position_arr)-1)) {
-                $sql = $sql . $position_arr[$i] . ", ";
-            } else {
-                $sql = $sql . $position_arr[$i];
-            }
-        }
-        $sql = $sql . "))";
-
-        $sql = $sql . " ORDER BY Accession, Position;";
-
-        $imp_result_arr = DB::connection($db)->select($sql);
-
 
         // Package variables that need to go to the view
         $info = [
             'organism' => $organism,
-            'dataset2' => $dataset2,
-            'accession' => $accession,
-            'gene2' => $gene2,
-            'result_arr' => $result_arr,
-            'imp_result_arr' => $imp_result_arr,
+            'dataset' => $dataset,
+            'gene' => $gene,
+            'accession_array' => $accession_array,
+            'result_arr' => $result_arr
         ];
 
         // Return to view
-        return view('system/tools/AlleleCatalogTool/viewAllByAccessionAndGene')->with('info', $info);
+        return view('system/tools/AlleleCatalogTool/viewAllByAccessionsAndGene')->with('info', $info);
     }
 
 
-    public function DownloadAllByAccessionsAndGene(Request $request, $organism)
-    {
-        $gene = $request->Gene;
-        $accessions = $request->Accessions;
-        $dataset = $request->Dataset;
-        $organism = $request->Organism;
-
+    public function QueryAllByAccessionsAndGene(Request $request, $organism) {
         // Database
         $db = "KBC_" . $organism;
 
-        if (is_string($accessions)) {
-            $accession_arr = preg_split("/[;,\n]+/", trim($accessions));
-        } elseif (is_array($accessions)) {
-            $accession_arr = $accessions;
+        $query_str = "SET SESSION group_concat_max_len = 1000000; ";
+        $set_group_concat_max_len_result = DB::connection($db)->select($query_str);
+
+        $dataset = $request->Dataset;
+        $gene = $request->Gene;
+        $accession = $request->Accession_Array;
+
+        if (is_string($accession)) {
+            $accession_array = preg_split("/[;, \n]+/", $accession);
+            for ($i = 0; $i < count($accession_array); $i++) {
+                $accession_array[$i] = trim($accession_array[$i]);
+            }
+        } elseif (is_array($accession)) {
+            $accession_array = $accession;
+            for ($i = 0; $i < count($accession_array); $i++) {
+                $accession_array[$i] = trim($accession_array[$i]);
+            }
         }
 
-        // Construct sql then make query
-        if ($organism == "Zmays") {
-            $sql = "
-            SELECT Kernel_Type, Improvement_Status, Country, State, 
-            Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-            FROM " . $db . "." . $dataset .
-                " WHERE (Gene IN ( '" . $gene . "' )) AND (Accession IN ('";
-            for ($i = 0; $i < count($accession_arr); $i++) {
-                if ($i < (count($accession_arr) - 1)) {
-                    $sql = $sql . $accession_arr[$i] . "', '";
-                } else {
-                    $sql = $sql . $accession_arr[$i];
+        // Table names and datasets
+        $table_names = self::getTableNames($organism, $dataset);
+        $key_column = $table_names["key_column"];
+        $gff_table = $table_names["gff_table"];
+        $accession_mapping_table = $table_names["accession_mapping_table"];
+
+        // Generate SQL string
+        $query_str = "SELECT Chromosome, Start, End, Name AS Gene ";
+        $query_str = $query_str . "FROM " . $db . "." . $gff_table . " ";
+        $query_str = $query_str . "WHERE Name IN ('" . $gene . "');";
+
+        $gene_result_arr = DB::connection($db)->select($query_str);
+
+
+        if ($organism == "Zmays" && $dataset == "Maize1210") {
+            // Generate SQL string
+            $query_str = "WHERE (ACD.Accession IN ('";
+            for ($i = 0; $i < count($accession_array); $i++) {
+                if($i < (count($accession_array)-1)){
+                    $query_str = $query_str . trim($accession_array[$i]) . "', '";
+                } elseif ($i == (count($accession_array)-1)) {
+                    $query_str = $query_str . trim($accession_array[$i]);
                 }
             }
-            $sql = $sql . "'));";
-        } else if ($organism == "Athaliana") {
-            $sql = "
-            SELECT Admixture_Group, Improvement_Status AS `Group`, Country_Code3 AS Country_Code, Country, State, 
-            Latitude, Longitude, Name, Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-            FROM " . $db . "." . $dataset .
-                " WHERE (Gene IN ( '" . $gene . "' )) AND (Accession IN ('";
-            for ($i = 0; $i < count($accession_arr); $i++) {
-                if ($i < (count($accession_arr) - 1)) {
-                    $sql = $sql . $accession_arr[$i] . "', '";
-                } else {
-                    $sql = $sql . $accession_arr[$i];
+            $query_str = $query_str . "')) ";
+            $query_str = $query_str . "OR (ACD.Panzea_Accession IN ('";
+            for ($i = 0; $i < count($accession_array); $i++) {
+                if($i < (count($accession_array)-1)){
+                    $query_str = $query_str . trim($accession_array[$i]) . "', '";
+                } elseif ($i == (count($accession_array)-1)) {
+                    $query_str = $query_str . trim($accession_array[$i]);
                 }
             }
-            $sql = $sql . "'));";
-        } else {
-            $sql = "
-            SELECT Classification, Improvement_Status, Maturity_Group, Country, State, 
-            Accession, Gene, Position, Genotype, Genotype_with_Description, Imputation 
-            FROM " . $db . "." . $dataset .
-                " WHERE (Gene IN ( '" . $gene . "' )) AND (Accession IN ('";
-            for ($i = 0; $i < count($accession_arr); $i++) {
-                if ($i < (count($accession_arr) - 1)) {
-                    $sql = $sql . $accession_arr[$i] . "', '";
-                } else {
-                    $sql = $sql . $accession_arr[$i];
+            $query_str = $query_str . "')) ";
+
+            $query_str = self::getDataQueryString(
+                $organism,
+                $dataset,
+                $db,
+                $gff_table,
+                $accession_mapping_table,
+                $gene,
+                $gene_result_arr[0]->Chromosome,
+                $query_str
+            );
+
+        } elseif ($organism == "Athaliana" && $dataset == "Arabidopsis1135") {
+            // Generate SQL string
+            $query_str = "WHERE (ACD.Accession IN ('";
+            for ($i = 0; $i < count($accession_array); $i++) {
+                if($i < (count($accession_array)-1)){
+                    $query_str = $query_str . trim($accession_array[$i]) . "', '";
+                } elseif ($i == (count($accession_array)-1)) {
+                    $query_str = $query_str . trim($accession_array[$i]);
                 }
             }
-            $sql = $sql . "'));";
+            $query_str = $query_str . "')) ";
+            $query_str = $query_str . "OR (ACD.TAIR_Accession IN ('";
+            for ($i = 0; $i < count($accession_array); $i++) {
+                if($i < (count($accession_array)-1)){
+                    $query_str = $query_str . trim($accession_array[$i]) . "', '";
+                } elseif ($i == (count($accession_array)-1)) {
+                    $query_str = $query_str . trim($accession_array[$i]);
+                }
+            }
+            $query_str = $query_str . "')) ";
+            $query_str = $query_str . "OR (ACD.Name IN ('";
+            for ($i = 0; $i < count($accession_array); $i++) {
+                if($i < (count($accession_array)-1)){
+                    $query_str = $query_str . trim($accession_array[$i]) . "', '";
+                } elseif ($i == (count($accession_array)-1)) {
+                    $query_str = $query_str . trim($accession_array[$i]);
+                }
+            }
+            $query_str = $query_str . "')) ";
+
+            $query_str = self::getDataQueryString(
+                $organism,
+                $dataset,
+                $db,
+                $gff_table,
+                $accession_mapping_table,
+                $gene,
+                $gene_result_arr[0]->Chromosome,
+                $query_str
+            );
+
+        } elseif ($organism == "Osativa" && $dataset == "Rice166") {
+            // Generate SQL string
+            $query_str = "WHERE (ACD.Accession IN ('";
+            for ($i = 0; $i < count($accession_array); $i++) {
+                if($i < (count($accession_array)-1)){
+                    $query_str = $query_str . trim($accession_array[$i]) . "', '";
+                } elseif ($i == (count($accession_array)-1)) {
+                    $query_str = $query_str . trim($accession_array[$i]);
+                }
+            }
+            $query_str = $query_str . "')) ";
+
+            $query_str = self::getDataQueryString(
+                $organism,
+                $dataset,
+                $db,
+                $gff_table,
+                $accession_mapping_table,
+                $gene,
+                $gene_result_arr[0]->Chromosome,
+                $query_str
+            );
+
+        } elseif ($organism == "Osativa" && $dataset == "Rice3000") {
+            // Generate SQL string
+            $query_str = "WHERE (ACD.Accession IN ('";
+            for ($i = 0; $i < count($accession_array); $i++) {
+                if($i < (count($accession_array)-1)){
+                    $query_str = $query_str . trim($accession_array[$i]) . "', '";
+                } elseif ($i == (count($accession_array)-1)) {
+                    $query_str = $query_str . trim($accession_array[$i]);
+                }
+            }
+            $query_str = $query_str . "')) ";
+
+            $query_str = self::getDataQueryString(
+                $organism,
+                $dataset,
+                $db,
+                $gff_table,
+                $accession_mapping_table,
+                $gene,
+                $gene_result_arr[0]->Chromosome,
+                $query_str
+            );
+
         }
 
-        $result_arr = DB::connection($db)->select($sql);
+        $result_arr = DB::connection($db)->select($query_str);
+
+        for ($i = 0; $i < count($result_arr); $i++) {
+            if (preg_match("/\+/i", $result_arr[$i]->Imputation)) {
+                $result_arr[$i]->Imputation = "+";
+            } else{
+                $result_arr[$i]->Imputation = "";
+            }
+        }
 
         return json_encode($result_arr);
     }
+
 }

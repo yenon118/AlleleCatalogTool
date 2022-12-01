@@ -15,7 +15,7 @@ $organism = $info['organism'];
 <br />
 
 <br />
-<p>Allele Catalog tool is not available for this organism.</p>
+<p>Allele Catalog Tool is not available for this organism.</p>
 <br />
 <br />
 <br />

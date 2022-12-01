@@ -2,29 +2,14 @@
 include resource_path() . '/views/system/config.blade.php';
 
 $organism = $info['organism'];
-$dataset1 = $info['dataset1'];
-$gene1 = $info['gene1'];
-$result_arr = $info['result_arr'];
-$checkboxes = $info['checkboxes'];
-
-$gene_arr = preg_split("/[;, \n]+/", $gene1);
-for ($i = 0; $i < count($gene_arr); $i++) {
-    $gene_arr[$i] = trim($gene_arr[$i]);
-}
-$gene_arr_str = strval(implode(";", $gene_arr));
-
-
-$ref_color_code = "#D1D1D1";
-$missense_variant_color_code = "#7FC8F5";
-$frameshift_variant_color_code = "#F26A55";
-$exon_loss_variant_color_code = "#F26A55";
-$lost_color_code = "#F26A55";
-$gain_color_code = "#F26A55";
-$disruptive_color_code = "#F26A55";
-$conservative_color_code = "#FF7F50";
-$splice_color_code = "#9EE85C";
+$dataset = $info['dataset'];
+$gene_array = $info['gene_array'];
+$improvement_status_array = $info['improvement_status_array'];
+$gene_result_arr = $info['gene_result_arr'];
+$allele_catalog_result_arr = $info['allele_catalog_result_arr'];
 
 @endphp
+
 
 
 <head>
@@ -57,111 +42,141 @@ $splice_color_code = "#9EE85C";
 
 
     @php
-    if (!isset($result_arr) || is_null($result_arr) || empty($result_arr)) {
-        echo "<p>No record found!!!</p>";
-    }
 
-    for ($i = 0; $i < count($result_arr); $i++) {
-        $segment_arr = $result_arr[array_keys($result_arr)[$i]];
+    // Color for functional effects
+    $ref_color_code = "#D1D1D1";
+    $missense_variant_color_code = "#7FC8F5";
+    $frameshift_variant_color_code = "#F26A55";
+    $exon_loss_variant_color_code = "#F26A55";
+    $lost_color_code = "#F26A55";
+    $gain_color_code = "#F26A55";
+    $disruptive_color_code = "#F26A55";
+    $conservative_color_code = "#FF7F50";
+    $splice_color_code = "#9EE85C";
 
-        echo "<div style=\"width:100%; height:100%; border:3px solid #000; height:auto; max-height:1000px; overflow:scroll;\">";
-        echo "<table style=\"text-align:center;\">";
+    // Render result to a table
+    if(isset($allele_catalog_result_arr) && is_array($allele_catalog_result_arr) && !empty($allele_catalog_result_arr)) {
 
-        // Table header
-        echo "<tr>";
-        echo "<th></th>";
-        foreach ($segment_arr[0] as $key => $value) {
-            if ($key != "Position" && $key != "Genotype" && $key != "Genotype_with_Description") {
-                echo "<th style=\"border:1px solid black; text-align:center; min-width:80px;\">" . $key . "</th>";
-            }
-        }
-        foreach ($segment_arr[0] as $key => $value) {
-            if ($key == "Position") {
-                $positionArray = preg_split("/[;, |\n]+/", $value);
-                for ($j = 0; $j < count($positionArray); $j++) {
-                    echo "<th style=\"border:1px solid black; text-align:center; min-width:120px;\">" . $positionArray[$j] . "</th>";
-                }
-            }
-        }
-        echo "<th></th>";
-        echo "</tr>";
+        for ($i = 0; $i < count($allele_catalog_result_arr); $i++) {
 
-        // Table body
-        for ($j = 0; $j < count($segment_arr); $j++) {
-            $tr_bgcolor = ($j % 2 ? "#FFFFFF" : "#DDFFDD");
+            // Make table
+            echo "<div style='width:100%; height:auto; border:3px solid #000; overflow:scroll; max-height:1000px;'>";
+            echo "<table style='text-align:center;'>";
 
-            echo "<tr bgcolor=\"" . $tr_bgcolor . "\">";
-            echo "<td><input type=\"checkbox\" id=\"no__" . $segment_arr[$j]->Gene . "__" . $j . "__front\" onclick=\"checkbox_highlights(this)\"></td>";
-
-            foreach ($segment_arr[$j] as $key => $value) {
-                if (strval($key) != "Position" && strval($key) != "Genotype" && strval($key) != "Genotype_with_Description") {
-                    if (!is_numeric($key) && intval($key) == 0 && is_numeric($value) && intval($value) > 0 && strval($key) != "Gene") {
-                        echo "<td style=\"border:1px solid black; min-width:80px;\"><a href=\"javascript:void(0);\" onclick=\"getAccessionsByImpStatusGenePositionGenotypeDesc('" . strval($organism) . "', '" . strval($dataset1) . "', '" . strval($key) . "', '" . $segment_arr[$j]->Gene . "', '" . $segment_arr[$j]->Position . "', '" . $segment_arr[$j]->Genotype_with_Description . "');\">" . $value . "</a></td>";
-                    } else if (!is_numeric($key) && intval($key) == 0 && is_numeric($value) && intval($value) == 0 && strval($key) != "Gene") {
-                        echo "<td style=\"border:1px solid black; min-width:80px;\">" . $value . "</td>";
-                    } else if (!is_numeric($key) && intval($key) == 0 && !is_numeric($value) && intval($value) == 0 && strval($key) == "Gene") {
-                        echo "<td style=\"border:1px solid black; min-width:80px;\">" . $value . "</td>";
+            // Table header
+            echo "<tr>";
+            echo "<th></th>";
+            foreach ($allele_catalog_result_arr[$i][0] as $key => $value) {
+                if ($key != "Gene" && $key != "Chromosome" && $key != "Position" && $key != "Genotype" && $key != "Genotype_Description") {
+                    // Improvement status count section
+                    echo "<th style=\"border:1px solid black; min-width:80px;\">" . $key . "</th>";
+                } elseif ($key == "Gene") {
+                    echo "<th style=\"border:1px solid black; min-width:80px;\">" . $key . "</th>";
+                } elseif ($key == "Chromosome") {
+                    echo "<th style=\"border:1px solid black; min-width:80px;\">" . $key . "</th>";
+                } elseif ($key == "Position") {
+                    // Position and genotype_description section
+                    $position_array = preg_split("/[;, \n]+/", $value);
+                    for ($j = 0; $j < count($position_array); $j++) {
+                        echo "<th style=\"border:1px solid black; min-width:80px;\">" . $position_array[$j] . "</th>";
                     }
                 }
             }
-            foreach ($segment_arr[$j] as $key => $value) {
-                if ($key == "Genotype_with_Description") {
-                    $genotypeWithDescriptionArray = preg_split("/[ ]+/", $value);
-                    for ($k = 0; $k < count($genotypeWithDescriptionArray); $k++) {
-                        if (preg_match("/missense.variant/i", $genotypeWithDescriptionArray[$k])) {
-                            $temp_value_arr = preg_split("/[;, |\n]+/", $genotypeWithDescriptionArray[$k]);
-                            $temp_value = (count($temp_value_arr) > 2 ? $temp_value_arr[0] . "|" . $temp_value_arr[2] : $genotypeWithDescriptionArray[$k]);
-                            echo "<td id=\"pos__" . $segment_arr[$j]->Gene . "__" . $key . "__" . $j . "\" style=\"border:1px solid black; min-width:120px; background-color:" . $missense_variant_color_code . "\">" . $temp_value . "</td>";
-                        } else if (preg_match("/frameshift/i", $genotypeWithDescriptionArray[$k])) {
-                            echo "<td id=\"pos__" . $segment_arr[$j]->Gene . "__" . $key . "__" . $j . "\" style=\"border:1px solid black; min-width:120px; background-color:" . $frameshift_variant_color_code . "\">" . $genotypeWithDescriptionArray[$k] . "</td>";
-                        } else if (preg_match("/exon.loss/i", $genotypeWithDescriptionArray[$k])) {
-                            echo "<td id=\"pos__" . $segment_arr[$j]->Gene . "__" . $key . "__" . $j . "\" style=\"border:1px solid black; min-width:120px; background-color:" . $exon_loss_variant_color_code . "\">" . $genotypeWithDescriptionArray[$k] . "</td>";
-                        } else if (preg_match("/lost/i", $genotypeWithDescriptionArray[$k])) {
-                            $temp_value_arr = preg_split("/[;, |\n]+/", $genotypeWithDescriptionArray[$k]);
-                            $temp_value = (count($temp_value_arr) > 2 ? $temp_value_arr[0] . "|" . $temp_value_arr[2] : $genotypeWithDescriptionArray[$k]);
-                            echo "<td id=\"pos__" . $segment_arr[$j]->Gene . "__" . $key . "__" . $j . "\" style=\"border:1px solid black; min-width:120px; background-color:" . $lost_color_code . "\">" . $genotypeWithDescriptionArray[$k] . "</td>";
-                        } else if (preg_match("/gain/i", $genotypeWithDescriptionArray[$k])) {
-                            $temp_value_arr = preg_split("/[;, |\n]+/", $genotypeWithDescriptionArray[$k]);
-                            $temp_value = (count($temp_value_arr) > 2 ? $temp_value_arr[0] . "|" . $temp_value_arr[2] : $genotypeWithDescriptionArray[$k]);
-                            echo "<td id=\"pos__" . $segment_arr[$j]->Gene . "__" . $key . "__" . $j . "\" style=\"border:1px solid black; min-width:120px; background-color:" . $gain_color_code . "\">" . $genotypeWithDescriptionArray[$k] . "</td>";
-                        } else if (preg_match("/disruptive/i", $genotypeWithDescriptionArray[$k])) {
-                            echo "<td id=\"pos__" . $segment_arr[$j]->Gene . "__" . $key . "__" . $j . "\" style=\"border:1px solid black; min-width:120px; background-color:" . $disruptive_color_code . "\">" . $genotypeWithDescriptionArray[$k] . "</td>";
-                        } else if (preg_match("/conservative/i", $genotypeWithDescriptionArray[$k])) {
-                            echo "<td id=\"pos__" . $segment_arr[$j]->Gene . "__" . $key . "__" . $j . "\" style=\"border:1px solid black; min-width:120px; background-color:" . $conservative_color_code . "\">" . $genotypeWithDescriptionArray[$k] . "</td>";
-                        } else if (preg_match("/splice/i", $genotypeWithDescriptionArray[$k])) {
-                            echo "<td id=\"pos__" . $segment_arr[$j]->Gene . "__" . $key . "__" . $j . "\" style=\"border:1px solid black; min-width:120px; background-color:" . $splice_color_code . "\">" . $genotypeWithDescriptionArray[$k] . "</td>";
-                        } else if (preg_match("/ref/i", $genotypeWithDescriptionArray[$k])) {
-                            echo "<td id=\"pos__" . $segment_arr[$j]->Gene . "__" . $key . "__" . $j . "\" style=\"border:1px solid black; min-width:120px; background-color:" . $ref_color_code . "\">" . $genotypeWithDescriptionArray[$k] . "</td>";
+            echo "<th></th>";
+            echo "</tr>";
+
+            // Table body
+            for ($j = 0; $j < count($allele_catalog_result_arr[$i]); $j++) {
+                $tr_bgcolor = ($j % 2 ? "#FFFFFF" : "#DDFFDD");
+
+                $row_id_prefix = $allele_catalog_result_arr[$i][$j]->Gene . "_" . $allele_catalog_result_arr[$i][$j]->Chromosome . "_" . $j;
+
+                echo "<tr bgcolor=\"" . $tr_bgcolor . "\">";
+                echo "<td><input type=\"checkbox\" id=\"" . $row_id_prefix . "_l" . "\" name=\"" . $row_id_prefix . "_l" . "\" value=\"" . $row_id_prefix . "_l" . "\" onclick=\"checkHighlight(this)\"></td>";
+
+                foreach ($allele_catalog_result_arr[$i][$j] as $key => $value) {
+                    if ($key != "Gene" && $key != "Chromosome" && $key != "Position" && $key != "Genotype" && $key != "Genotype_Description") {
+                        // Improvement status count section
+                        if (intval($value) > 0) {
+                            echo "<td style=\"border:1px solid black;min-width:80px;\">";
+                            echo "<a href=\"javascript:void(0);\" onclick=\"queryMetadataByImprovementStatusAndGenotypeCombination('" . $organism . "', '" . strval($dataset) . "', '" . strval($key) . "', '" . $allele_catalog_result_arr[$i][$j]->Gene . "', '" . $allele_catalog_result_arr[$i][$j]->Chromosome . "', '" . $allele_catalog_result_arr[$i][$j]->Position . "', '" . $allele_catalog_result_arr[$i][$j]->Genotype . "', '" . $allele_catalog_result_arr[$i][$j]->Genotype_Description . "')\">";
+                            echo $value;
+                            echo "</a>";
+                            echo "</td>";
                         } else {
-                            echo "<td id=\"pos__" . $segment_arr[$j]->Gene . "__" . $key . "__" . $j . "\" style=\"border:1px solid black; min-width:120px; background-color:#FFFFFF\">" . $genotypeWithDescriptionArray[$k] . "</td>";
+                            echo "<td style=\"border:1px solid black;min-width:80px;\">" . $value . "</td>";
+                        }
+                    } elseif ($key == "Gene") {
+                        echo "<td style=\"border:1px solid black;min-width:80px;\">" . $value . "</td>";
+                    } elseif ($key == "Chromosome") {
+                        echo "<td style=\"border:1px solid black;min-width:80px;\">" . $value . "</td>";
+                    } elseif ($key == "Genotype_Description") {
+                        // Position and genotype_description section
+                        $position_array = preg_split("/[;, \n]+/", $allele_catalog_result_arr[$i][$j]->Position);
+                        $genotype_description_array = preg_split("/[;, \n]+/", $value);
+                        for ($k = 0; $k < count($genotype_description_array); $k++) {
+
+                            // Change genotype_description background color
+                            $td_bg_color = "#FFFFFF";
+                            if (preg_match("/missense.variant/i", $genotype_description_array[$k])) {
+                                $td_bg_color = $missense_variant_color_code;
+                                $temp_value_arr = preg_split("/[;, |\n]+/", $genotype_description_array[$k]);
+                                $genotype_description_array[$k] = (count($temp_value_arr) > 2 ? $temp_value_arr[0] . "|" . $temp_value_arr[2] : $genotype_description_array[$k]);
+                            } else if (preg_match("/frameshift/i", $genotype_description_array[$k])) {
+                                $td_bg_color = $frameshift_variant_color_code;
+                            } else if (preg_match("/exon.loss/i", $genotype_description_array[$k])) {
+                                $td_bg_color = $exon_loss_variant_color_code;
+                            } else if (preg_match("/lost/i", $genotype_description_array[$k])) {
+                                $td_bg_color = $lost_color_code;
+                                $temp_value_arr = preg_split("/[;, |\n]+/", $genotype_description_array[$k]);
+                                $genotype_description_array[$k] = (count($temp_value_arr) > 2 ? $temp_value_arr[0] . "|" . $temp_value_arr[2] : $genotype_description_array[$k]);
+                            } else if (preg_match("/gain/i", $genotype_description_array[$k])) {
+                                $td_bg_color = $gain_color_code;
+                                $temp_value_arr = preg_split("/[;, |\n]+/", $genotype_description_array[$k]);
+                                $genotype_description_array[$k] = (count($temp_value_arr) > 2 ? $temp_value_arr[0] . "|" . $temp_value_arr[2] : $genotype_description_array[$k]);
+                            } else if (preg_match("/disruptive/i", $genotype_description_array[$k])) {
+                                $td_bg_color = $disruptive_color_code;
+                            } else if (preg_match("/conservative/i", $genotype_description_array[$k])) {
+                                $td_bg_color = $conservative_color_code;
+                            } else if (preg_match("/splice/i", $genotype_description_array[$k])) {
+                                $td_bg_color = $splice_color_code;
+                            } else if (preg_match("/ref/i", $genotype_description_array[$k])) {
+                                $td_bg_color = $ref_color_code;
+                            }
+
+                            echo "<td id=\"" . $row_id_prefix . "_" . $position_array[$k] . "\" style=\"border:1px solid black;min-width:80px;background-color:" . $td_bg_color . "\">" . $genotype_description_array[$k] . "</td>";
                         }
                     }
                 }
+
+                echo "<td><input type=\"checkbox\" id=\"" . $row_id_prefix . "_r" . "\" name=\"" . $row_id_prefix . "_r" . "\" value=\"" . $row_id_prefix . "_r" . "\" onclick=\"checkHighlight(this)\"></td>";
+                echo "</tr>";
             }
 
-            echo "<td><input type=\"checkbox\" id=\"no__" . $segment_arr[$j]->Gene . "__" . $j . "__back\" onclick=\"checkbox_highlights(this)\"></td>";
-            echo "</tr>";
+            echo "</table>";
+            echo "</div>";
+
+            echo "<div style='margin-top:10px;' align='right'>";
+            echo "<button onclick=\"queryAllCountsByGene('" . $organism . "', '" . $dataset . "', '" . $allele_catalog_result_arr[$i][0]->Gene . "', '" . implode(";", $improvement_status_array) . "')\" style=\"margin-right:20px;\"> Download (Accession Counts)</button>";
+            echo "<button onclick=\"queryAllByGene('" . $organism . "', '" . $dataset . "', '" . $allele_catalog_result_arr[$i][0]->Gene . "', '" . implode(";", $improvement_status_array) . "')\"> Download (All Accessions)</button>";
+            echo "</div>";
+
+            echo "<br />";
+            echo "<br />";
         }
 
-        echo "</table>";
-        echo "</div>";
+        if (count($allele_catalog_result_arr) > 0) {
+            echo "<br/><br/>";
+            echo "<div style='margin-top:10px;' align='center'>";
+            echo "<button onclick=\"queryAccessionInformation('" . $organism . "', '" . $dataset . "')\" style=\"margin-right:20px;\">Download Accession Information</button>";
+            echo "<button onclick=\"queryAllCountsByMultipleGenes('" . $organism . "', '" . $dataset . "', '" . implode(";", $gene_array) . "', '" . implode(";", $improvement_status_array) . "')\" style=\"margin-right:20px;\"> Download All (Accession Counts)</button>";
+            echo "<button onclick=\"queryAllByMultipleGenes('" . $organism . "', '" . $dataset . "', '" . implode(";", $gene_array) . "', '" . implode(";", $improvement_status_array) . "')\" style=\"margin-right:20px;\"> Download All (All Accessions)</button>";
+            echo "</div>";
+            echo "<br/><br/>";
+        }
 
-        echo "<div style='margin-top:10px;' align='right'>";
-        echo "<button onclick=\"downloadAllCountsByGene('" . $organism . "', '" . $dataset1 . "', '" . $segment_arr[0]->Gene . "', '" . implode(";", $checkboxes) . "')\" style=\"margin-right:20px;\"> Download (Accession Counts)</button>";
-        echo "<button onclick=\"downloadAllByGene('" . $organism . "', '" . $dataset1 . "', '" . $segment_arr[0]->Gene . "', '" . implode(";", $checkboxes) . "')\"> Download (All Accessions)</button>";
-        echo "</div>";
-
-        echo "<br />";
-        echo "<br />";
-    }
-
-    if (isset($result_arr) && !is_null($result_arr) && !empty($result_arr)) {
-        echo "<br/><br/>";
-        echo "<div style='margin-top:10px;' align='center'>";
-        echo "<button onclick=\"downloadAllCountsByMultipleGenes('" . $organism . "', '" . $dataset1 . "', '" . implode(";", $gene_arr) . "', '" . implode(";", $checkboxes) . "')\" style=\"margin-right:20px;\"> Download All (Accession Counts)</button>";
-        echo "<button onclick=\"downloadAllByMultipleGenes('" . $organism . "', '" . $dataset1 . "', '" . implode(";", $gene_arr) . "', '" . implode(";", $checkboxes) . "')\" style=\"margin-right:20px;\"> Download All (All Accessions)</button>";
-        echo "</div>";
-        echo "<br/><br/>";
+    } else {
+        echo "<p>No Allele Catalog data found in database!!!</p>";
     }
 
     @endphp
@@ -169,12 +184,9 @@ $splice_color_code = "#9EE85C";
     <div class="footer" style="margin-top:20px;float:right;">© Copyright 2022 KBCommons</div>
 </body>
 
+<script src="{{ asset('system/home/AlleleCatalogTool/js/modal.js') }}" type="text/javascript"></script>
+<script src="{{ asset('system/home/AlleleCatalogTool/js/viewAllByGenes.js') }}" type="text/javascript"></script>
+
 
 <script type="text/javascript">
 </script>
-
-<script src="{{ asset('system/home/AlleleCatalogTool/js/dataProcessor.js') }}" type="text/javascript"></script>
-<script src="{{ asset('system/home/AlleleCatalogTool/js/getAccessionsByImpStatusGenePositionGenotypeDesc.js') }}" type="text/javascript"></script>
-<script src="{{ asset('system/home/AlleleCatalogTool/js/download.js') }}" type="text/javascript"></script>
-<script src="{{ asset('system/home/AlleleCatalogTool/js/modal.js') }}" type="text/javascript"></script>
-<script src="{{ asset('system/home/AlleleCatalogTool/js/checkboxHighlight.js') }}" type="text/javascript"></script>

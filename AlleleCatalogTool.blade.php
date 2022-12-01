@@ -5,7 +5,9 @@ $organism = $info['organism'];
 $dataset_array = $info['dataset_array'];
 $gene_array = $info['gene_array'];
 $accession_array = $info['accession_array'];
-$checkboxes = $info['checkboxes'];
+$key_column = $info['key_column'];
+$improvement_status_array = $info['improvement_status_array'];
+$accession_mapping_table = $info['accession_mapping_table'];
 
 @endphp
 
@@ -24,16 +26,17 @@ $checkboxes = $info['checkboxes'];
             <form action="{{ route('system.tools.AlleleCatalogTool.viewAllByGenes', ['organism'=>$organism]) }}" method="get" target="_blank">
                 <h2>Search by Gene IDs</h2>
                 <br />
-                <label for="dataset1"><b>Dataset:</b></label>
-                <select name="dataset1" id="dataset1">
+                <label for="dataset_1"><b>Dataset:</b></label>
+                <select name="dataset_1" id="dataset_1" onchange="updateSearchByGeneIDs('{{$organism}}', event)">
                     @foreach($dataset_array as $dataset)
-                    <option value="{{ $dataset }}">{{ str_replace('_', ' ', $dataset) }}</option>
+                    <option value="{{ $dataset }}">{{ str_replace('_', ' ', $dataset) . " Allele Catalog" }}</option>
                     @endforeach
                 </select>
                 <br />
                 <br />
-                <b>Gene IDs</b><br />
-                <span style="font-size:10pt">
+                <label><b>Gene IDs:</b></label>
+                <br />
+                <span id="gene_examples_1" style="font-size:10pt">
                     &nbsp;(eg
                     @foreach($gene_array as $gene)
                     {{ $gene->Gene }}
@@ -41,38 +44,38 @@ $checkboxes = $info['checkboxes'];
                     )
                 </span>
                 <br />
-                <textarea id="gene1" name="gene1" rows="12" cols="40"></textarea>
+                <textarea id="gene_1" name="gene_1" rows="12" cols="40"></textarea>
                 <br /><br />
-                @foreach($checkboxes as $key => $checkbox)
-                @if ($checkbox === "Imputed" || $checkbox === "Unimputed")
-                <input type="checkbox" id="{{ $checkbox }}" name="{{ $checkbox }}" value="{{ $checkbox }}" hidden>
-                <label for="{{ $checkbox }}" hidden>{{ str_replace('_', ' ', $checkbox) }}</label>
-                @else
-                <input type="checkbox" id="{{ $checkbox }}" name="{{ $checkbox }}" value="{{ $checkbox }}" checked>
-                <label for="{{ $checkbox }}">{{ str_replace('_', ' ', $checkbox) }}</label>
-                @endif
-                @if ($key != 0 && $key % 5 === 0)
+                <div id="improvement_status_div_1">
+                <label><b>{{ str_replace('_', ' ', $key_column) }}:</b></label>
+                <br />
+                @foreach($improvement_status_array as $key => $improvement_status)
+                <input type="checkbox" id="{{ $improvement_status->Key }}" name="improvement_status_1[]" value="{{ $improvement_status->Key }}" checked>
+                <label for="{{ $improvement_status->Key }}" style="font-weight: normal;">{{ str_replace('_', ' ', $improvement_status->Key) }}</label>
+                @if ($key != 0 && $key % 4 === 0)
                     <br />
                 @endif
                 @endforeach
+                </div>
                 <br /><br />
                 <input type="submit" value="Search">
             </form>
         </td>
         <td width="50%" align="center" valign="top" style="border:1px solid #999999; padding:10px; background-color:#f8f8f8; text-align:left;">
-            <form action="{{ route('system.tools.AlleleCatalogTool.viewAllByAccessionAndGene', ['organism'=>$organism]) }}" method="get" target="_blank">
+            <form action="{{ route('system.tools.AlleleCatalogTool.viewAllByAccessionsAndGene', ['organism'=>$organism]) }}" method="get" target="_blank">
                 <h2>Search by Accessions and Gene ID</h2>
                 <br />
-                <label for="dataset2"><b>Dataset:</b></label>
-                <select name="dataset2" id="dataset2">
+                <label for="dataset_2"><b>Dataset:</b></label>
+                <select name="dataset_2" id="dataset_2" onchange="updateSearchByAccessionsandGeneID('{{$organism}}', event)">
                     @foreach($dataset_array as $dataset)
-                    <option value="{{ $dataset }}">{{ str_replace('_', ' ', $dataset) }}</option>
+                    <option value="{{ $dataset }}">{{ str_replace('_', ' ', $dataset) . " Allele Catalog" }}</option>
                     @endforeach
                 </select>
                 <br />
                 <br />
-                <b>Accessions</b>
-                <span style="font-size:10pt">
+                <label><b>Accessions:</b></label>
+                <br />
+                <span id="accession_examples_2" style="font-size:10pt">
                     &nbsp;(eg
                     @foreach($accession_array as $accession)
                     {{ $accession->Accession }}
@@ -80,11 +83,13 @@ $checkboxes = $info['checkboxes'];
                     )
                 </span>
                 <br />
-                <textarea id="accession" name="accession" rows="12" cols="40"></textarea>
+                <textarea id="accession_2" name="accession_2" rows="12" cols="40"></textarea>
                 <br /><br />
-                <b>Gene ID</b><span style="font-size:10pt">&nbsp;(One gene name only; eg {{ $gene_array[0]->Gene }})</span>
+                <label><b>Gene ID:</b></label>
+                <span id="gene_example_2" style="font-size:10pt">&nbsp;(One gene ID only; eg {{ $gene_array[0]->Gene }})</span>
                 <br />
-                <input type="text" id="gene2" name="gene2" size="40"></input>
+                <input type="text" id="gene_2" name="gene_2" size="40"></input>
+                <br /><br />
                 <br /><br />
                 <input type="submit" value="Search">
             </form>
@@ -92,42 +97,37 @@ $checkboxes = $info['checkboxes'];
     </tr>
 </table>
 
-@if ($organism === "Zmays")
-    <br />
-    <br />
-    <div style='margin-top:10px;' align='center'>
-        <button type="submit" onclick="window.open('https://data.cyverse.org/dav-anon/iplant/home/soykb/KBCAlleleCatalogTool/Zmays_Panzea_AGPv3_accession_file.csv')" style="margin-right:20px;">Download Accession Information</button>
-    </div>
-@elseif ($organism === "Athaliana")
-    <br />
-    <br />
-    <div style='margin-top:10px;' align='center'>
-        <button type="submit" onclick="window.open('https://data.cyverse.org/dav-anon/iplant/home/soykb/KBCAlleleCatalogTool/Arabidopsis_TAIR10_accession_file.csv')" style="margin-right:20px;">Download Accession Information</button>
-    </div>
-@endif
+
+<br />
+<br />
+<div style='margin-top:10px;' align='center'>
+    <button type="submit" onclick="queryAccessionInformation('{{ $organism }}', '{{ $accession_mapping_table }}')" style="margin-right:20px;">Download Accession Information</button>
+</div>
 
 @endsection
 
 
 @section('javascript')
 
+<script src="{{ asset('system/home/AlleleCatalogTool/js/AlleleCatalogTool.js') }}" type="text/javascript"></script>
+
 <script type="text/javascript">
     // Populate gene1 textarea placeholder
     let gene_array = <?php echo json_encode($gene_array); ?>;
-    gene1_placeholder = "\nPlease separate each gene into a new line.\n\nExample:\n";
+    var gene_1_str = "\nPlease separate each gene into a new line.\n\nExample:\n";
     for (let i = 0; i < gene_array.length; i++) {
-        gene1_placeholder += gene_array[i]['Gene'] + "\n";
+        gene_1_str += gene_array[i]['Gene'] + "\n";
     }
-    document.getElementById('gene1').placeholder = gene1_placeholder;
+    document.getElementById('gene_1').placeholder = gene_1_str;
 
 
     // Populate accession textarea placeholder
     let accession_array = <?php echo json_encode($accession_array); ?>;
-    accession_placeholder = "\nPlease separate each accession into a new line.\n\nExample:\n";
+    var accession_2_str = "\nPlease separate each accession into a new line.\n\nExample:\n";
     for (let i = 0; i < accession_array.length; i++) {
-        accession_placeholder += accession_array[i]['Accession'] + "\n";
+        accession_2_str += accession_array[i]['Accession'] + "\n";
     }
-    document.getElementById('accession').placeholder = accession_placeholder;
+    document.getElementById('accession_2').placeholder = accession_2_str;
 </script>
 
 @endsection
