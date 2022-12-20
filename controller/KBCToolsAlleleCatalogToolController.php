@@ -40,6 +40,10 @@ class KBCToolsAlleleCatalogToolController extends Controller
             $key_column = "Subpopulation";
             $gff_table = "act_Rice_Nipponbare_GFF";
             $accession_mapping_table = "act_Rice3000_Accession_Mapping";
+        } elseif ($organism == "Ptrichocarpa" && $dataset == "PopulusTrichocarpa882") {
+            $key_column = "";
+            $gff_table = "act_Ptrichocarpa_v3_1_GFF";
+            $accession_mapping_table = "act_PopulusTrichocarpa882_Accession_Mapping";
         } else {
             $key_column = "";
             $gff_table = "";
@@ -241,6 +245,36 @@ class KBCToolsAlleleCatalogToolController extends Controller
             $query_str = $query_str . "GROUP BY ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description ";
             $query_str = $query_str . $having;
             $query_str = $query_str . "ORDER BY ACD.Gene, Total DESC; ";
+        } elseif ($organism == "Ptrichocarpa" && $dataset == "PopulusTrichocarpa882") {
+            // Generate SQL string
+            $query_str = "SELECT ";
+            $query_str = $query_str . "COUNT(ACD.Accession) AS Total, ";
+            $query_str = $query_str . "ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description ";
+            $query_str = $query_str . "FROM ( ";
+            $query_str = $query_str . "    SELECT GD.Accession, ";
+            $query_str = $query_str . "    GD.Gene, GD.Chromosome, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Position SEPARATOR ' ') AS Position, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Genotype SEPARATOR ' ') AS Genotype, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Genotype_Description SEPARATOR ' ') AS Genotype_Description ";
+            $query_str = $query_str . "    FROM ( ";
+            $query_str = $query_str . "        SELECT G.Chromosome, G.Position, G.Accession, GFF.Gene, G.Genotype, ";
+            $query_str = $query_str . "        CONCAT_WS('|', G.Genotype, G.Functional_Effect, G.Amino_Acid_Change) AS Genotype_Description ";
+            $query_str = $query_str . "        FROM ( ";
+            $query_str = $query_str . "            SELECT Chromosome, Start, End, Name AS Gene ";
+            $query_str = $query_str . "            FROM " . $db . "." . $gff_table . " ";
+            $query_str = $query_str . "            WHERE Name IN ('" . $gene . "') ";
+            $query_str = $query_str . "        ) AS GFF ";
+            $query_str = $query_str . "        INNER JOIN " . $db . ".act_" . $dataset . "_" . $chromosome . " AS G ";
+            $query_str = $query_str . "        ON (G.Chromosome = GFF.Chromosome) AND (G.Position >= GFF.Start) AND (G.Position <= GFF.End) ";
+            $query_str = $query_str . "        ORDER BY G.Position ";
+            $query_str = $query_str . "    ) AS GD ";
+            $query_str = $query_str . "    LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
+            $query_str = $query_str . "    ON AM.Accession = GD.Accession ";
+            $query_str = $query_str . "    GROUP BY GD.Accession, GD.Gene, GD.Chromosome ";
+            $query_str = $query_str . ") AS ACD ";
+            $query_str = $query_str . "GROUP BY ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description ";
+            $query_str = $query_str . $having;
+            $query_str = $query_str . "ORDER BY ACD.Gene, Total DESC; ";
         }
 
         return $query_str;
@@ -379,6 +413,38 @@ class KBCToolsAlleleCatalogToolController extends Controller
             $query_str = $query_str . ") AS ACD ";
             $query_str = $query_str . $where;
             $query_str = $query_str . "ORDER BY ACD.Gene; ";
+        } elseif ($organism == "Ptrichocarpa" && $dataset == "PopulusTrichocarpa882") {
+            // Generate SQL string
+            $query_str = "SELECT ";
+            $query_str = $query_str . "ACD.Accession, ";
+            $query_str = $query_str . "ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description, ACD.Imputation ";
+            $query_str = $query_str . "FROM ( ";
+            $query_str = $query_str . "    SELECT ";
+            $query_str = $query_str . "    GD.Accession, ";
+            $query_str = $query_str . "    GD.Gene, GD.Chromosome, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Position SEPARATOR ' ') AS Position, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Genotype SEPARATOR ' ') AS Genotype, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Genotype_Description SEPARATOR ' ') AS Genotype_Description, ";
+            $query_str = $query_str . "    GROUP_CONCAT(GD.Imputation SEPARATOR ' ') AS Imputation ";
+            $query_str = $query_str . "    FROM ( ";
+            $query_str = $query_str . "        SELECT G.Chromosome, G.Position, G.Accession, GFF.Gene, G.Genotype, ";
+            $query_str = $query_str . "        CONCAT_WS('|', G.Genotype, G.Functional_Effect, G.Amino_Acid_Change, G.Imputation) AS Genotype_Description, ";
+            $query_str = $query_str . "        G.Imputation ";
+            $query_str = $query_str . "        FROM ( ";
+            $query_str = $query_str . "            SELECT Chromosome, Start, End, Name AS Gene ";
+            $query_str = $query_str . "            FROM " . $db . "." . $gff_table . " ";
+            $query_str = $query_str . "            WHERE Name IN ('" . $gene . "') ";
+            $query_str = $query_str . "        ) AS GFF ";
+            $query_str = $query_str . "        INNER JOIN " . $db . ".act_" . $dataset . "_" . $chromosome . " AS G ";
+            $query_str = $query_str . "        ON (G.Chromosome = GFF.Chromosome) AND (G.Position >= GFF.Start) AND (G.Position <= GFF.End) ";
+            $query_str = $query_str . "        ORDER BY G.Position ";
+            $query_str = $query_str . "    ) AS GD ";
+            $query_str = $query_str . "    LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
+            $query_str = $query_str . "    ON AM.Accession = GD.Accession ";
+            $query_str = $query_str . "    GROUP BY GD.Accession, GD.Gene, GD.Chromosome ";
+            $query_str = $query_str . ") AS ACD ";
+            $query_str = $query_str . $where;
+            $query_str = $query_str . "ORDER BY ACD.Gene; ";
         }
 
         return $query_str;
@@ -401,6 +467,9 @@ class KBCToolsAlleleCatalogToolController extends Controller
         } elseif ($organism == "Osativa") {
             $gff_table = "act_Rice_Nipponbare_GFF";
             $accession_mapping_table = "act_Rice3000_Accession_Mapping";
+        } elseif ($organism == "Ptrichocarpa") {
+            $gff_table = "act_Ptrichocarpa_v3_1_GFF";
+            $accession_mapping_table = "act_PopulusTrichocarpa882_Accession_Mapping";
         }
 
         // Define datasets
@@ -410,29 +479,40 @@ class KBCToolsAlleleCatalogToolController extends Controller
             $dataset_array = array("Arabidopsis1135");
         } elseif ($organism == "Osativa") {
             $dataset_array = array("Rice3000", "Rice166");
+        } elseif ($organism == "Ptrichocarpa") {
+            $dataset_array = array("PopulusTrichocarpa882");
         }
 
         try {
             // Query gene from database
             if ($organism == "Zmays") {
                 $sql = "SELECT DISTINCT Name AS Gene FROM " . $db . "." . $gff_table . " WHERE Name IS NOT NULL AND Name LIKE 'GRMZM%' LIMIT 3;";
+            } elseif ($organism == "Ptrichocarpa") {
+                $sql = "SELECT DISTINCT Name AS Gene FROM " . $db . "." . $gff_table . " WHERE Name IS NOT NULL LIMIT 3,3;";
             } else {
                 $sql = "SELECT DISTINCT Name AS Gene FROM " . $db . "." . $gff_table . " WHERE Name IS NOT NULL LIMIT 3;";
             }
             $gene_array = DB::connection($db)->select($sql);
 
+
             // Query improvement status, group, or subpopulation from database
             if ($organism == "Zmays") {
                 $key_column = "Improvement_Status";
                 $sql = "SELECT DISTINCT Improvement_Status AS `Key` FROM " . $db . "." . $accession_mapping_table . ";";
+                $improvement_status_array = DB::connection($db)->select($sql);
             } elseif ($organism == "Athaliana") {
                 $key_column = "Group";
                 $sql = "SELECT DISTINCT `Group` AS `Key` FROM " . $db . "." . $accession_mapping_table . ";";
+                $improvement_status_array = DB::connection($db)->select($sql);
             } elseif ($organism == "Osativa") {
                 $key_column = "Subpopulation";
                 $sql = "SELECT DISTINCT Subpopulation AS `Key` FROM " . $db . "." . $accession_mapping_table . ";";
+                $improvement_status_array = DB::connection($db)->select($sql);
+            } else {
+                $key_column = "";
+                $improvement_status_array = Array();
             }
-            $improvement_status_array = DB::connection($db)->select($sql);
+            
 
             // Query accession from database
             if ($organism == "Zmays") {
@@ -441,8 +521,11 @@ class KBCToolsAlleleCatalogToolController extends Controller
                 $sql = "SELECT DISTINCT TAIR_Accession AS Accession FROM " . $db . "." . $accession_mapping_table . " WHERE Accession IS NOT NULL LIMIT 3;";
             } elseif ($organism == "Osativa") {
                 $sql = "SELECT DISTINCT Accession FROM " . $db . "." . $accession_mapping_table . " WHERE Accession IS NOT NULL LIMIT 3;";
+            }  elseif ($organism == "Ptrichocarpa") {
+                $sql = "SELECT DISTINCT Accession FROM " . $db . "." . $accession_mapping_table . " WHERE Accession IS NOT NULL LIMIT 3;";
             }
             $accession_array = DB::connection($db)->select($sql);
+
 
             // Package variables that need to go to the view
             $info = [
@@ -484,6 +567,8 @@ class KBCToolsAlleleCatalogToolController extends Controller
         // Query gene from database
         if ($organism == "Zmays" && $dataset == "Maize1210") {
             $sql = "SELECT DISTINCT Name AS Gene FROM " . $db . "." . $gff_table . " WHERE Name IS NOT NULL AND Name LIKE 'GRMZM%' LIMIT 3;";
+        } elseif ($organism == "Ptrichocarpa" && $dataset == "PopulusTrichocarpa882") {
+            $sql = "SELECT DISTINCT Name AS Gene FROM " . $db . "." . $gff_table . " WHERE Name IS NOT NULL LIMIT 3,3;";
         } else {
             $sql = "SELECT DISTINCT Name AS Gene FROM " . $db . "." . $gff_table . " WHERE Name IS NOT NULL LIMIT 3;";
         }
@@ -530,6 +615,8 @@ class KBCToolsAlleleCatalogToolController extends Controller
         // Query gene from database
         if ($organism == "Zmays" && $dataset == "Maize1210") {
             $sql = "SELECT DISTINCT Name AS Gene FROM " . $db . "." . $gff_table . " WHERE Name IS NOT NULL AND Name LIKE 'GRMZM%' LIMIT 3;";
+        } elseif ($organism == "Ptrichocarpa" && $dataset == "PopulusTrichocarpa882") {
+            $sql = "SELECT DISTINCT Name AS Gene FROM " . $db . "." . $gff_table . " WHERE Name IS NOT NULL AND Name LIKE 'GRMZM%' LIMIT 3,3;";
         } else {
             $sql = "SELECT DISTINCT Name AS Gene FROM " . $db . "." . $gff_table . " WHERE Name IS NOT NULL LIMIT 3;";
         }
@@ -543,6 +630,8 @@ class KBCToolsAlleleCatalogToolController extends Controller
         } elseif ($organism == "Osativa" && $dataset == "Rice166") {
             $sql = "SELECT DISTINCT Accession FROM " . $db . "." . $accession_mapping_table . " WHERE Accession IS NOT NULL LIMIT 3;";
         } elseif ($organism == "Osativa" && $dataset == "Rice3000") {
+            $sql = "SELECT DISTINCT Accession FROM " . $db . "." . $accession_mapping_table . " WHERE Accession IS NOT NULL LIMIT 3;";
+        } elseif ($organism == "Ptrichocarpa" && $dataset == "PopulusTrichocarpa882") {
             $sql = "SELECT DISTINCT Accession FROM " . $db . "." . $accession_mapping_table . " WHERE Accession IS NOT NULL LIMIT 3;";
         }
         $accession_array = DB::connection($db)->select($sql);
@@ -789,6 +878,29 @@ class KBCToolsAlleleCatalogToolController extends Controller
                 $gene_result_arr[0]->Chromosome,
                 $query_str
             );
+
+        } elseif ($organism == "Ptrichocarpa" && $dataset == "PopulusTrichocarpa882") {
+            // Generate SQL string
+            if ($key == "Total") {
+                $query_str = "WHERE (ACD.Position = '" . $position . "') AND (ACD.Genotype = '" . $genotype . "')";
+            } else {
+                $query_str = "WHERE ";
+                $query_str = $query_str . "(ACD." . $key_column . " = '" . $key . "') AND ";
+                $query_str = $query_str . "(ACD.Position = '" . $position . "') AND ";
+                $query_str = $query_str . "(ACD.Genotype = '" . $genotype . "')";
+            }
+
+            $query_str = self::getDataQueryString(
+                $organism,
+                $dataset,
+                $db,
+                $gff_table,
+                $accession_mapping_table,
+                $gene,
+                $gene_result_arr[0]->Chromosome,
+                $query_str
+            );
+
         }
 
         $result_arr = DB::connection($db)->select($query_str);
@@ -1226,6 +1338,29 @@ class KBCToolsAlleleCatalogToolController extends Controller
                     $query_str
                 );
 
+            } elseif ($organism == "Ptrichocarpa" && $dataset == "PopulusTrichocarpa882") {
+                // Generate SQL string
+                $query_str = "WHERE (ACD.Accession IN ('";
+                for ($i = 0; $i < count($accession_array); $i++) {
+                    if($i < (count($accession_array)-1)){
+                        $query_str = $query_str . trim($accession_array[$i]) . "', '";
+                    } elseif ($i == (count($accession_array)-1)) {
+                        $query_str = $query_str . trim($accession_array[$i]);
+                    }
+                }
+                $query_str = $query_str . "')) ";
+
+                $query_str = self::getDataQueryString(
+                    $organism,
+                    $dataset,
+                    $db,
+                    $gff_table,
+                    $accession_mapping_table,
+                    $gene,
+                    $gene_result_arr[0]->Chromosome,
+                    $query_str
+                );
+
             }
 
             $result_arr = DB::connection($db)->select($query_str);
@@ -1381,6 +1516,29 @@ class KBCToolsAlleleCatalogToolController extends Controller
             );
 
         } elseif ($organism == "Osativa" && $dataset == "Rice3000") {
+            // Generate SQL string
+            $query_str = "WHERE (ACD.Accession IN ('";
+            for ($i = 0; $i < count($accession_array); $i++) {
+                if($i < (count($accession_array)-1)){
+                    $query_str = $query_str . trim($accession_array[$i]) . "', '";
+                } elseif ($i == (count($accession_array)-1)) {
+                    $query_str = $query_str . trim($accession_array[$i]);
+                }
+            }
+            $query_str = $query_str . "')) ";
+
+            $query_str = self::getDataQueryString(
+                $organism,
+                $dataset,
+                $db,
+                $gff_table,
+                $accession_mapping_table,
+                $gene,
+                $gene_result_arr[0]->Chromosome,
+                $query_str
+            );
+
+        } elseif ($organism == "Ptrichocarpa" && $dataset == "PopulusTrichocarpa882") {
             // Generate SQL string
             $query_str = "WHERE (ACD.Accession IN ('";
             for ($i = 0; $i < count($accession_array); $i++) {

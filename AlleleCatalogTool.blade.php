@@ -46,6 +46,7 @@ $accession_mapping_table = $info['accession_mapping_table'];
                 <br />
                 <textarea id="gene_1" name="gene_1" rows="12" cols="40"></textarea>
                 <br /><br />
+                @if ($key_column != "" && !empty($improvement_status_array))
                 <div id="improvement_status_div_1">
                 <label><b>{{ str_replace('_', ' ', $key_column) }}:</b></label>
                 <br />
@@ -57,6 +58,7 @@ $accession_mapping_table = $info['accession_mapping_table'];
                 @endif
                 @endforeach
                 </div>
+                @endif
                 <br /><br />
                 <input type="submit" value="Search">
             </form>
