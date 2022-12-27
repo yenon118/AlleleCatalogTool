@@ -28,32 +28,46 @@ class KBCToolsAlleleCatalogToolController extends Controller
             $key_column = "Improvement_Status";
             $gff_table = "act_Maize_AGPv3_GFF";
             $accession_mapping_table = "act_Maize1210_Accession_Mapping";
+            $phenotype_table = "";
+            $phenotype_selection_table = "";
         } elseif ($organism == "Athaliana" && $dataset == "Arabidopsis1135") {
             $key_column = "Group";
             $gff_table = "act_Arabidopsis_TAIR10_GFF";
             $accession_mapping_table = "act_Arabidopsis1135_Accession_Mapping";
+            $phenotype_table = "act_" . $dataset . "_Phenotype_Data";
+            $phenotype_selection_table = "act_" . $dataset . "_Phenotype_Selection";
         } elseif ($organism == "Osativa" && $dataset == "Rice166") {
             $key_column = "";
             $gff_table = "act_Rice_Nipponbare_GFF";
             $accession_mapping_table = "act_Rice166_Accession_Mapping";
+            $phenotype_table = "";
+            $phenotype_selection_table = "";
         } elseif ($organism == "Osativa" && $dataset == "Rice3000") {
             $key_column = "Subpopulation";
             $gff_table = "act_Rice_Nipponbare_GFF";
             $accession_mapping_table = "act_Rice3000_Accession_Mapping";
+            $phenotype_table = "act_" . $dataset . "_Phenotype_Data";
+            $phenotype_selection_table = "act_" . $dataset . "_Phenotype_Selection";
         } elseif ($organism == "Ptrichocarpa" && $dataset == "PopulusTrichocarpa882") {
             $key_column = "";
             $gff_table = "act_Ptrichocarpa_v3_1_GFF";
             $accession_mapping_table = "act_PopulusTrichocarpa882_Accession_Mapping";
+            $phenotype_table = "";
+            $phenotype_selection_table = "";
         } else {
             $key_column = "";
             $gff_table = "";
             $accession_mapping_table = $dataset;
+            $phenotype_table = "";
+            $phenotype_selection_table = "";
         }
 
         return array(
             "key_column" => $key_column,
             "gff_table" => $gff_table,
-            "accession_mapping_table" => $accession_mapping_table
+            "accession_mapping_table" => $accession_mapping_table,
+            "phenotype_table" => $phenotype_table,
+            "phenotype_selection_table" => $phenotype_selection_table
         );
     }
 
@@ -512,7 +526,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
                 $key_column = "";
                 $improvement_status_array = Array();
             }
-            
+
 
             // Query accession from database
             if ($organism == "Zmays") {
@@ -1576,4 +1590,216 @@ class KBCToolsAlleleCatalogToolController extends Controller
         return json_encode($result_arr);
     }
 
+
+    public function ViewVariantAndPhenotypePage(Request $request, $organism) {
+
+        // Database
+        $db = "KBC_" . $organism;
+
+        $chromosome = $request->Chromosome;
+        $position = $request->Position;
+        $dataset = $request->Dataset;
+
+        // Trim string
+        if (is_string($chromosome)) {
+            $chromosome = trim($chromosome);
+        }
+        if (is_string($position)) {
+            $position = trim($position);
+        }
+        if (is_string($dataset)) {
+            $dataset = trim($dataset);
+        }
+
+        // Table names and datasets
+        $table_names = self::getTableNames($organism, $dataset);
+        $key_column = $table_names["key_column"];
+        $gff_table = $table_names["gff_table"];
+        $accession_mapping_table = $table_names["accession_mapping_table"];
+        $phenotype_table = $table_names["phenotype_table"];
+        $phenotype_selection_table = $table_names["phenotype_selection_table"];
+        $genotype_table = "act_" . $dataset . "_" . $chromosome;
+
+        // Query string
+        $query_str = "SELECT * FROM " . $db . "." . $phenotype_selection_table . ";" ;
+
+        try {
+            $phenotype_selection_arr = DB::connection($db)->select($query_str);
+        } catch (\Exception $e) {
+            $phenotype_selection_arr = array();
+        }
+
+        $query_str = "
+            SELECT DISTINCT Genotype
+            FROM " . $db . "." . $genotype_table . "
+            WHERE ((Chromosome = '" . $chromosome . "')
+            AND (Position = " . $position . "))
+            ORDER BY Genotype;
+        ";
+
+        $genotype_selection_arr = DB::connection($db)->select($query_str);
+
+        // Package variables that need to go to the view
+        $info = [
+            'organism' => $organism,
+            'chromosome' => $chromosome,
+            'position' => $position,
+            'dataset' => $dataset,
+            'phenotype_selection_arr' => $phenotype_selection_arr,
+            'genotype_selection_arr' => $genotype_selection_arr
+        ];
+
+        // Return to view
+        return view('system/tools/AlleleCatalogTool/viewVariantAndPhenotype')->with('info', $info);
+    }
+
+
+    public function QueryPhenotypeDescription(Request $request, $organism) {
+
+        // Database
+        $db = "KBC_" . $organism;
+
+        $dataset = $request->Dataset;
+
+        // Table names and datasets
+        $table_names = self::getTableNames($organism, $dataset);
+        $phenotype_selection_table = $table_names["phenotype_selection_table"];
+
+        // Query string
+        $query_str = "SELECT Phenotype, Phenotype_Description FROM " . $db . "." . $phenotype_selection_table . ";";
+
+        $result_arr = DB::connection($db)->select($query_str);
+
+        return json_encode($result_arr);
+    }
+
+
+    public function QueryVariantAndPhenotype(Request $request, $organism) {
+
+        // Database
+        $db = "KBC_" . $organism;
+
+        $chromosome = $request->Chromosome;
+        $position = $request->Position;
+        $genotype = $request->Genotype;
+        $phenotype = $request->Phenotype;
+        $dataset = $request->Dataset;
+
+        if (is_string($genotype)) {
+            $genotype_array = preg_split("/[;, \n]+/", $genotype);
+            for ($i = 0; $i < count($genotype_array); $i++) {
+                $genotype_array[$i] = trim($genotype_array[$i]);
+            }
+        } elseif (is_array($genotype)) {
+            $genotype_array = $genotype;
+            for ($i = 0; $i < count($genotype_array); $i++) {
+                $genotype_array[$i] = trim($genotype_array[$i]);
+            }
+        }
+
+        if (is_string($phenotype)) {
+            $phenotype_array = preg_split("/[;, \n]+/", $phenotype);
+            for ($i = 0; $i < count($phenotype_array); $i++) {
+                $phenotype_array[$i] = trim($phenotype_array[$i]);
+            }
+        } elseif (is_array($phenotype)) {
+            $phenotype_array = $phenotype;
+            for ($i = 0; $i < count($phenotype_array); $i++) {
+                $phenotype_array[$i] = trim($phenotype_array[$i]);
+            }
+        }
+
+        // Table names and datasets
+        $table_names = self::getTableNames($organism, $dataset);
+        $key_column = $table_names["key_column"];
+        $gff_table = $table_names["gff_table"];
+        $accession_mapping_table = $table_names["accession_mapping_table"];
+        $phenotype_table = $table_names["phenotype_table"];
+        $phenotype_selection_table = $table_names["phenotype_selection_table"];
+        $genotype_table = "act_" . $dataset . "_" . $chromosome;
+
+        // Construct query string
+        $query_str = "SELECT G.Chromosome, G.Position, G.Accession, ";
+        if ($organism == "Osativa") {
+            $query_str = $query_str . "AM.Accession_Name, AM.IRIS_ID, AM.Subpopulation, ";
+        } elseif ($organism == "Athaliana") {
+            $query_str = $query_str . "AM.TAIR_Accession, AM.Name, AM.Admixture_Group, ";
+        } elseif ($organism == "Zmays") {
+            $query_str = $query_str . "AM.Improvement_Status, ";
+        }
+        $query_str = $query_str . "G.Genotype, ";
+        $query_str = $query_str . "G.Functional_Effect, G.Imputation ";
+        if (isset($phenotype_array) && is_array($phenotype_array) && !empty($phenotype_array)) {
+            for ($i = 0; $i < count($phenotype_array); $i++) {
+                $query_str = $query_str . ", PH." . $phenotype_array[$i] . " ";
+            }
+        }
+        $query_str = $query_str . "FROM " . $db . "." . $genotype_table . " AS G ";
+        $query_str = $query_str . "LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
+        $query_str = $query_str . "ON BINARY G.Accession = AM.Accession ";
+        if (isset($phenotype_array) && is_array($phenotype_array) && !empty($phenotype_array)) {
+            $query_str = $query_str . "LEFT JOIN " . $db . "." . $phenotype_table . " AS PH ";
+            if ($organism == "Athaliana" && $dataset == "Arabidopsis1135") {
+                $query_str = $query_str . "ON BINARY AM.TAIR_Accession = PH.Accession ";
+            } else {
+                $query_str = $query_str . "ON BINARY G.Accession = PH.Accession ";
+            }
+        }
+        $query_str = $query_str . "WHERE (G.Chromosome = '" . $chromosome . "') ";
+        $query_str = $query_str . "AND (G.Position = " . $position . ") ";
+        if (count($genotype_array) > 0) {
+            $query_str = $query_str . "AND (G.Genotype IN ('";
+            for ($i = 0; $i < count($genotype_array); $i++) {
+                if($i < (count($genotype_array)-1)){
+                    $query_str = $query_str . trim($genotype_array[$i]) . "', '";
+                } elseif ($i == (count($genotype_array)-1)) {
+                    $query_str = $query_str . trim($genotype_array[$i]);
+                }
+            }
+            $query_str = $query_str . "')) ";
+        }
+        $query_str = $query_str . "ORDER BY G.Chromosome, G.Position, G.Genotype;";
+
+        $result_arr = DB::connection($db)->select($query_str);
+
+        return json_encode($result_arr);
+    }
+
+
+    public function ViewVariantAndPhenotypeFiguresPage(Request $request, $organism) {
+
+        // Database
+        $db = "KBC_" . $organism;
+
+        $chromosome = $request->chromosome_1;
+        $position = $request->position_1;
+        $genotype = $request->genotype_1;
+        $phenotype = $request->phenotype_1;
+        $dataset = $request->dataset_1;
+
+        if (is_string($genotype)) {
+            $genotype_array = preg_split("/[;, \n]+/", $genotype);
+            for ($i = 0; $i < count($genotype_array); $i++) {
+                $genotype_array[$i] = trim($genotype_array[$i]);
+            }
+        } elseif (is_array($genotype)) {
+            $genotype_array = $genotype;
+            for ($i = 0; $i < count($genotype_array); $i++) {
+                $genotype_array[$i] = trim($genotype_array[$i]);
+            }
+        }
+
+        // Package variables that need to go to the view
+        $info = [
+            'organism' => $organism,
+            'chromosome' => $chromosome,
+            'position' => $position,
+            'genotype_array' => $genotype_array,
+            'phenotype' => $phenotype,
+            'dataset' => $dataset
+        ];
+
+        // Return to view
+        return view('system/tools/AlleleCatalogTool/viewVariantAndPhenotypeFigures')->with('info', $info);
+    }
 }
