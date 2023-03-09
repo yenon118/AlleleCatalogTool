@@ -52,8 +52,8 @@ class KBCToolsAlleleCatalogToolController extends Controller
             $key_column = "";
             $gff_table = "act_Ptrichocarpa_v3_1_GFF";
             $accession_mapping_table = "act_PopulusTrichocarpa882_Accession_Mapping";
-            $phenotype_table = "";
-            $phenotype_selection_table = "";
+            $phenotype_table = "act_PopulusTrichocarpa882_Phenotype_Data";
+            $phenotype_selection_table = "act_PopulusTrichocarpa882_Phenotype_Selection";
         } else {
             $key_column = "";
             $gff_table = "";
@@ -430,11 +430,11 @@ class KBCToolsAlleleCatalogToolController extends Controller
         } elseif ($organism == "Ptrichocarpa" && $dataset == "PopulusTrichocarpa882") {
             // Generate SQL string
             $query_str = "SELECT ";
-            $query_str = $query_str . "ACD.Accession, ";
+            $query_str = $query_str . "ACD.Accession, ACD.CBI_Coding_ID, ";
             $query_str = $query_str . "ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description, ACD.Imputation ";
             $query_str = $query_str . "FROM ( ";
             $query_str = $query_str . "    SELECT ";
-            $query_str = $query_str . "    GD.Accession, ";
+            $query_str = $query_str . "    GD.Accession, AM.CBI_Coding_ID, ";
             $query_str = $query_str . "    GD.Gene, GD.Chromosome, ";
             $query_str = $query_str . "    GROUP_CONCAT(GD.Position SEPARATOR ' ') AS Position, ";
             $query_str = $query_str . "    GROUP_CONCAT(GD.Genotype SEPARATOR ' ') AS Genotype, ";
@@ -455,7 +455,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
             $query_str = $query_str . "    ) AS GD ";
             $query_str = $query_str . "    LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
             $query_str = $query_str . "    ON AM.Accession = GD.Accession ";
-            $query_str = $query_str . "    GROUP BY GD.Accession, GD.Gene, GD.Chromosome ";
+            $query_str = $query_str . "    GROUP BY GD.Accession, AM.CBI_Coding_ID, GD.Gene, GD.Chromosome ";
             $query_str = $query_str . ") AS ACD ";
             $query_str = $query_str . $where;
             $query_str = $query_str . "ORDER BY ACD.Gene; ";
@@ -1363,6 +1363,15 @@ class KBCToolsAlleleCatalogToolController extends Controller
                     }
                 }
                 $query_str = $query_str . "')) ";
+                $query_str = $query_str . "OR (ACD.CBI_Coding_ID IN ('";
+                for ($i = 0; $i < count($accession_array); $i++) {
+                    if($i < (count($accession_array)-1)){
+                        $query_str = $query_str . trim($accession_array[$i]) . "', '";
+                    } elseif ($i == (count($accession_array)-1)) {
+                        $query_str = $query_str . trim($accession_array[$i]);
+                    }
+                }
+                $query_str = $query_str . "')) ";
 
                 $query_str = self::getDataQueryString(
                     $organism,
@@ -1563,6 +1572,15 @@ class KBCToolsAlleleCatalogToolController extends Controller
                 }
             }
             $query_str = $query_str . "')) ";
+            $query_str = $query_str . "OR (ACD.CBI_Coding_ID IN ('";
+            for ($i = 0; $i < count($accession_array); $i++) {
+                if($i < (count($accession_array)-1)){
+                    $query_str = $query_str . trim($accession_array[$i]) . "', '";
+                } elseif ($i == (count($accession_array)-1)) {
+                    $query_str = $query_str . trim($accession_array[$i]);
+                }
+            }
+            $query_str = $query_str . "')) ";
 
             $query_str = self::getDataQueryString(
                 $organism,
@@ -1726,6 +1744,8 @@ class KBCToolsAlleleCatalogToolController extends Controller
             $query_str = $query_str . "AM.TAIR_Accession, AM.Name, AM.Admixture_Group, ";
         } elseif ($organism == "Zmays") {
             $query_str = $query_str . "AM.Improvement_Status, ";
+        } elseif ($organism == "Ptrichocarpa") {
+            $query_str = $query_str . "AM.CBI_Coding_ID, AM.Alternative_CBI_Coding_ID, ";
         }
         $query_str = $query_str . "G.Genotype, ";
         $query_str = $query_str . "G.Functional_Effect, G.Imputation ";

@@ -70,6 +70,9 @@ $dataset = $info['dataset'];
     } else if (organism == "Zmays") {
         document.getElementById('improvement_status_summary_figure_div').innerHTML = "Loading improvement status summary plot...";
         summaryPhenotype = "Improvement_Status";
+    } else {
+        document.getElementById('improvement_status_summary_figure_div').innerHTML = "Loading accession with phenotype summary plot...";
+        summaryPhenotype = "";
     }
 
     if (organism && chromosome && position && phenotype && genotype_array.length > 0) {
@@ -107,7 +110,11 @@ $dataset = $info['dataset'];
                     var genotypeAndImprovementStatusData = collectDataForFigure(result_arr, summaryPhenotype, 'Genotype');
 
                     plotFigure(genotypeData, 'Genotype', 'Genotype', 'genotype_figure_div');
-                    plotFigure(genotypeAndImprovementStatusData, 'Genotype', summaryPhenotype+'_Summary', 'improvement_status_summary_figure_div');
+                    if (summaryPhenotype === ""){
+                        plotFigure(genotypeAndImprovementStatusData, 'Genotype', 'Accession with Phenotype Summary', 'improvement_status_summary_figure_div');
+                    } else {
+                        plotFigure(genotypeAndImprovementStatusData, 'Genotype', summaryPhenotype+'_Summary', 'improvement_status_summary_figure_div');
+                    }
 
                     // Render summarized data
                     document.getElementById('genotype_summary_table_div').innerText = "";

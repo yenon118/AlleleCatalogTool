@@ -84,7 +84,7 @@ function constructInfoTable(organism, res, dataset, chromosome, position, genoty
     let header_array = Object.keys(res[0]);
     for (let i = 0; i < header_array.length; i++) {
 
-        if (header_array[i] == "Chromosome" || header_array[i] == "Position" || header_array[i] == "Accession" || header_array[i] == "GRIN_Accession" || header_array[i] == "Accession_Name" || header_array[i] == "IRIS_ID" || header_array[i] == "TAIR_Accession" || header_array[i] == "Name" || header_array[i] == "Genotype" || header_array[i] == "Functional_Effect" || header_array[i] == "Category" || header_array[i] == "Imputation" || header_array[i] == "Improvement_Status" || header_array[i] == "Admixture_Group" || header_array[i] == "Subpopulation") {
+        if (header_array[i] == "Chromosome" || header_array[i] == "Position" || header_array[i] == "Accession" || header_array[i] == "GRIN_Accession" || header_array[i] == "Accession_Name" || header_array[i] == "IRIS_ID" || header_array[i] == "TAIR_Accession" || header_array[i] == "Name" || header_array[i] == "Genotype" || header_array[i] == "Functional_Effect" || header_array[i] == "Category" || header_array[i] == "Imputation" || header_array[i] == "Improvement_Status" || header_array[i] == "Admixture_Group" || header_array[i] == "Subpopulation" || header_array[i] == "CBI_Coding_ID" || header_array[i] == "Alternative_CBI_Coding_ID") {
             var detail_th = document.createElement("th");
             detail_th.setAttribute("style", "border:1px solid black; min-width:80px; height:18.5px;");
             detail_th.innerHTML = header_array[i];
