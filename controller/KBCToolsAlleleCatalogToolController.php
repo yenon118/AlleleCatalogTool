@@ -1745,7 +1745,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
         } elseif ($organism == "Zmays") {
             $query_str = $query_str . "AM.Improvement_Status, ";
         } elseif ($organism == "Ptrichocarpa") {
-            $query_str = $query_str . "AM.CBI_Coding_ID, AM.Alternative_CBI_Coding_ID, ";
+            $query_str = $query_str . "AM.CBI_Coding_ID, ";
         }
         $query_str = $query_str . "G.Genotype, ";
         $query_str = $query_str . "G.Functional_Effect, G.Imputation ";
