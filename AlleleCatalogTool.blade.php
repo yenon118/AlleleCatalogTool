@@ -102,8 +102,27 @@ $accession_mapping_table = $info['accession_mapping_table'];
 
 <br />
 <br />
+
+
 <div style='margin-top:10px;' align='center'>
     <button type="submit" onclick="queryAccessionInformation('{{ $organism }}', '{{ $accession_mapping_table }}')" style="margin-right:20px;">Download Accession Information</button>
+</div>
+
+
+<br />
+<br />
+
+
+<div>
+    <table>
+        <tr>
+            <td width="50%" align="center" valign="top" style="border:1px solid #999999; padding:10px; background-color:#f8f8f8; text-align:left;">
+                <h2>If you use the Allele Catalog Tool in your work, please cite:</h2>
+                <br />
+                <p> Chan YO, Dietz N, Zeng S, Wang J, Flint-Garcia S, Salazar-Vidal MN, Škrabišová M, Bilyeu K, Joshi T: <b> The Allele Catalog Tool: a web-based interactive tool for allele discovery and analysis. </b> BMC Genomics 2023, 24(1):107. </p>
+            </td>
+        </tr>
+    </table>
 </div>
 
 @endsection
