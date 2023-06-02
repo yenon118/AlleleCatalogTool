@@ -89,11 +89,13 @@ function summarizeQueriedData(jsonObject, phenotype, selectedKey){
 
     // Get accession count
     var selectedKeyArray = [];
+    var functionalEffectArray = [];
     var categoryArray = [];
     for (let i = 0; i < jsonObject.length; i++) {
         if (jsonObject[i][selectedKey] != undefined && jsonObject[i][selectedKey] != null && jsonObject[i][selectedKey] != "" && jsonObject[i][selectedKey] != "null") {
             if (!selectedKeyArray.includes(jsonObject[i][selectedKey])) {
                 selectedKeyArray.push(jsonObject[i][selectedKey]);
+                functionalEffectArray.push(jsonObject[i]['Functional_Effect']);
                 if (jsonObject[i].hasOwnProperty('Category')) {
                     categoryArray.push(jsonObject[i]['Category']);
                 }
@@ -103,6 +105,7 @@ function summarizeQueriedData(jsonObject, phenotype, selectedKey){
     for (let i = 0; i < selectedKeyArray.length; i++) {
         if (categoryArray.length > 0) {
             summaryObject[selectedKeyArray[i]] = {
+                "Functional_Effect": functionalEffectArray[i],
                 "Category": categoryArray[i],
                 "Total_Number_of_Phenotype": 0,
                 "Number_of_Accession_with_Phenotype": 0,
@@ -110,6 +113,7 @@ function summarizeQueriedData(jsonObject, phenotype, selectedKey){
             }
         } else {
             summaryObject[selectedKeyArray[i]] = {
+                "Functional_Effect": functionalEffectArray[i],
                 "Total_Number_of_Phenotype": 0,
                 "Number_of_Accession_with_Phenotype": 0,
                 "Number_of_Accession_without_Phenotype": 0,
@@ -200,7 +204,8 @@ function summarizeQueriedData(jsonObject, phenotype, selectedKey){
         // Calculate percentage
         for (let i = 0; i < selectedKeyArray.length; i++) {
             for (let j = 0; j < phenotypePercentColumnArray.length; j++) {
-                summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] =  100 * summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] / totalNumberOfPhenotypes;
+                // summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] =  100 * summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] / totalNumberOfPhenotypes;
+                summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] =  100 * summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] / summaryObject[selectedKeyArray[i]]["Number_of_Accession_with_Phenotype"];
                 if (summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] > 0) {
                     summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] = Math.round(summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] * 100) / 100;
                 }
