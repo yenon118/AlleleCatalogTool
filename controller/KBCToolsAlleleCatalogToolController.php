@@ -536,7 +536,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
             } elseif ($organism == "Osativa") {
                 $sql = "SELECT DISTINCT Accession FROM " . $db . "." . $accession_mapping_table . " WHERE Accession IS NOT NULL LIMIT 3;";
             }  elseif ($organism == "Ptrichocarpa") {
-                $sql = "SELECT DISTINCT Accession FROM " . $db . "." . $accession_mapping_table . " WHERE Accession IS NOT NULL LIMIT 3;";
+                $sql = "SELECT DISTINCT Accession FROM " . $db . "." . $accession_mapping_table . " WHERE Accession IS NOT NULL LIMIT 1,3;";
             }
             $accession_array = DB::connection($db)->select($sql);
 
