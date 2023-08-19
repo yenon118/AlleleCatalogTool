@@ -64,17 +64,17 @@ $phenotype_selection_arr = $info['phenotype_selection_arr'];
     <br/>
 
     <div style='margin-top:10px;' align='center'>
-    <button onclick="uncheck_all_genotype()" style="margin-right:20px;">Uncheck All Genotypes</button>
-    <button onclick="check_all_genotype()" style="margin-right:20px;">Check All Genotypes</button>
+    <button onclick="uncheck_all_genotype()" style="margin-right:20px; background-color:#FFFFFF;">Uncheck All Genotypes</button>
+    <button onclick="check_all_genotype()" style="margin-right:20px; background-color:#FFFFFF;">Check All Genotypes</button>
     @php
     if(isset($phenotype_selection_arr) && is_array($phenotype_selection_arr) && !empty($phenotype_selection_arr)) {
-        echo "<button onclick=\"uncheck_all_phenotypes('" . $organism . "')\" style=\"margin-right:20px;\">Uncheck All Phenotypes</button>";
-        echo "<button onclick=\"check_all_phenotypes('" . $organism . "')\" style=\"margin-right:20px;\">Check All Phenotypes</button>";
-        echo "<button onclick=\"queryPhenotypeDescription('" . $organism . "', '" . $dataset . "')\" style=\"margin-right:20px;\">Download Phenotype Description</button>";
+        echo "<button onclick=\"uncheck_all_phenotypes('" . $organism . "')\" style=\"margin-right:20px; background-color:#FFFFFF;\">Uncheck All Phenotypes</button>";
+        echo "<button onclick=\"check_all_phenotypes('" . $organism . "')\" style=\"margin-right:20px; background-color:#FFFFFF;\">Check All Phenotypes</button>";
+        echo "<button onclick=\"queryPhenotypeDescription('" . $organism . "', '" . $dataset . "')\" style=\"margin-right:20px; background-color:#FFFFFF;\">Download Phenotype Description</button>";
     }
     @endphp
-    <button onclick="queryVariantAndPhenotype('{{$organism}}', '{{$dataset}}')" style="margin-right:20px;">View Data</button>
-    <button onclick="downloadVariantAndPhenotype('{{$organism}}', '{{$dataset}}')" style="margin-right:20px;">Download Data</button>
+    <button onclick="queryVariantAndPhenotype('{{$organism}}', '{{$dataset}}')" style="margin-right:20px; background-color:#99DDFF;">View Data</button>
+    <button onclick="downloadVariantAndPhenotype('{{$organism}}', '{{$dataset}}')" style="margin-right:20px; background-color:#FFFFFF;">Download Data</button>
     </div>
     <br/><br/>
 
