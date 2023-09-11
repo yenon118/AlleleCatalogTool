@@ -105,7 +105,8 @@ $accession_mapping_table = $info['accession_mapping_table'];
 
 
 <div style='margin-top:10px;' align='center'>
-    <button type="submit" onclick="queryAccessionInformation('{{ $organism }}', '{{ $accession_mapping_table }}')" style="margin-right:20px;">Download Accession Information</button>
+    <button type="submit" onclick="queryAccessionInformation('{{ $organism }}', '{{ $accession_mapping_table }}')" style="min-width:250px;background-color:#FFFFFF;">Download Accession Information</button>
+    <button onclick="viewDemo()" style="margin-right:20px;min-width:150px;background-color:#99DDFF;">View Demo</button>
 </div>
 
 
@@ -133,6 +134,17 @@ $accession_mapping_table = $info['accession_mapping_table'];
 <script src="{{ asset('system/home/AlleleCatalogTool/js/AlleleCatalogTool.js') }}" type="text/javascript"></script>
 
 <script type="text/javascript">
+    // View demo
+    function viewDemo() {
+		let downloadAnchorNode = document.createElement('a');
+		downloadAnchorNode.setAttribute("href", "https://drive.google.com/file/d/1hpTYAwuRWh5MF9TpgBi721lyyWcDJ_5p/view");
+		downloadAnchorNode.setAttribute("target", "_blank");
+		document.body.appendChild(downloadAnchorNode); // required for firefox
+		downloadAnchorNode.click();
+		downloadAnchorNode.remove();
+	}
+
+
     // Populate gene1 textarea placeholder
     let gene_array = <?php echo json_encode($gene_array); ?>;
     var gene_1_str = "\nPlease separate each gene into a new line.\n\nExample:\n";
