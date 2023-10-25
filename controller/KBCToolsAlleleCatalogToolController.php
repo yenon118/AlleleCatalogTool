@@ -1626,7 +1626,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
         $accession_mapping_table = $table_names["accession_mapping_table"];
         $phenotype_table = $table_names["phenotype_table"];
         $phenotype_selection_table = $table_names["phenotype_selection_table"];
-        $genotype_table = "act_" . $dataset . "_" . $chromosome;
+        $genotype_table = "act_" . $dataset . "_genotype_" . $chromosome;
 
         // Query string
         $query_str = "SELECT * FROM " . $db . "." . $phenotype_selection_table . ";" ;
