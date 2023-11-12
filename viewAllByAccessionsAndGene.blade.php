@@ -75,11 +75,11 @@ if (is_string($accession)) {
                 $position_array = preg_split("/[;, \n]+/", $value);
                 for ($j = 0; $j < count($position_array); $j++) {
                     if ($organism == "Osativa" && $dataset == "Rice3000") {
-                        echo "<th style=\"border:1px solid black; min-width:80px;\"><a href=\"../viewVariantAndPhenotype/" . $organism . "?Dataset=" . $dataset . "&Chromosome=" . $result_arr[0]->Chromosome . "&Position=" . $position_array[$j] . "\" target=\"_blank\">" . $position_array[$j] . "</a></th>";
+                        echo "<th style=\"border:1px solid black; min-width:80px;\"><a href=\"../viewVariantAndPhenotype/" . $organism . "?Dataset=" . $dataset . "&Chromosome=" . $result_arr[0]->Chromosome . "&Position=" . $position_array[$j] . "&Gene=" . $result_arr[0]->Gene . "\" target=\"_blank\">" . $position_array[$j] . "</a></th>";
                     } elseif ($organism == "Athaliana" && $dataset == "Arabidopsis1135") {
-                        echo "<th style=\"border:1px solid black; min-width:80px;\"><a href=\"../viewVariantAndPhenotype/" . $organism . "?Dataset=" . $dataset . "&Chromosome=" . $result_arr[0]->Chromosome . "&Position=" . $position_array[$j] . "\" target=\"_blank\">" . $position_array[$j] . "</a></th>";
+                        echo "<th style=\"border:1px solid black; min-width:80px;\"><a href=\"../viewVariantAndPhenotype/" . $organism . "?Dataset=" . $dataset . "&Chromosome=" . $result_arr[0]->Chromosome . "&Position=" . $position_array[$j] . "&Gene=" . $result_arr[0]->Gene . "\" target=\"_blank\">" . $position_array[$j] . "</a></th>";
                     } elseif ($organism == "Ptrichocarpa" && $dataset == "PopulusTrichocarpa882") {
-                        echo "<th style=\"border:1px solid black; min-width:80px;\"><a href=\"../viewVariantAndPhenotype/" . $organism . "?Dataset=" . $dataset . "&Chromosome=" . $result_arr[0]->Chromosome . "&Position=" . $position_array[$j] . "\" target=\"_blank\">" . $position_array[$j] . "</a></th>";
+                        echo "<th style=\"border:1px solid black; min-width:80px;\"><a href=\"../viewVariantAndPhenotype/" . $organism . "?Dataset=" . $dataset . "&Chromosome=" . $result_arr[0]->Chromosome . "&Position=" . $position_array[$j] . "&Gene=" . $result_arr[0]->Gene . "\" target=\"_blank\">" . $position_array[$j] . "</a></th>";
                     } else {
                         echo "<th style=\"border:1px solid black; min-width:80px;\">" . $position_array[$j] . "</th>";
                     }

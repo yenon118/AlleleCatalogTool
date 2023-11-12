@@ -77,7 +77,7 @@ $dataset = $info['dataset'];
         summaryPhenotype = "";
     }
 
-    if (organism && chromosome && position && phenotype && genotype_array.length > 0) {
+    if (organism && chromosome && position && gene && phenotype && genotype_array.length > 0) {
         $.ajax({
             url: 'queryVariantAndPhenotypeFigures/'+organism,
             type: 'GET',
