@@ -110,7 +110,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
             $query_str = $query_str . "	INNER JOIN " . $db . ".act_" . $dataset . "_genotype_" . $chromosome . " AS GENO ";
             $query_str = $query_str . "	ON (GENO.Chromosome = COMB1.Chromosome) AND (GENO.Position = COMB1.Position) ";
             $query_str = $query_str . "	LEFT JOIN " . $db . ".act_" . $dataset . "_func_eff_" . $chromosome . " AS FUNC2 ";
-            $query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) ";
+            $query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) AND (FUNC2.Gene LIKE CONCAT('%', COMB1.Gene, '%')) ";
             $query_str = $query_str . " LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
             $query_str = $query_str . " ON BINARY AM.Accession = GENO.Accession ";
             $query_str = $query_str . " GROUP BY AM.Improvement_Status, GENO.Accession, COMB1.Gene, GENO.Chromosome ";
@@ -155,7 +155,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
             $query_str = $query_str . "	INNER JOIN " . $db . ".act_" . $dataset . "_genotype_" . $chromosome . " AS GENO ";
             $query_str = $query_str . "	ON (GENO.Chromosome = COMB1.Chromosome) AND (GENO.Position = COMB1.Position) ";
             $query_str = $query_str . "	LEFT JOIN " . $db . ".act_" . $dataset . "_func_eff_" . $chromosome . " AS FUNC2 ";
-            $query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) ";
+            $query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) AND (FUNC2.Gene LIKE CONCAT('%', COMB1.Gene, '%')) ";
             $query_str = $query_str . " LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
             $query_str = $query_str . " ON AM.Accession = GENO.Accession ";
             $query_str = $query_str . " GROUP BY AM.Group, GENO.Accession, COMB1.Gene, GENO.Chromosome ";
@@ -185,7 +185,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
             $query_str = $query_str . "	INNER JOIN " . $db . ".act_" . $dataset . "_genotype_" . $chromosome . " AS GENO ";
             $query_str = $query_str . "	ON (GENO.Chromosome = COMB1.Chromosome) AND (GENO.Position = COMB1.Position) ";
             $query_str = $query_str . "	LEFT JOIN " . $db . ".act_" . $dataset . "_func_eff_" . $chromosome . " AS FUNC2 ";
-            $query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) ";
+            $query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) AND (FUNC2.Gene LIKE CONCAT('%', COMB1.Gene, '%')) ";
             $query_str = $query_str . " LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
             $query_str = $query_str . " ON AM.Accession = GENO.Accession ";
             $query_str = $query_str . " GROUP BY GENO.Accession, COMB1.Gene, GENO.Chromosome ";
@@ -251,7 +251,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
             $query_str = $query_str . "	INNER JOIN " . $db . ".act_" . $dataset . "_genotype_" . $chromosome . " AS GENO ";
             $query_str = $query_str . "	ON (GENO.Chromosome = COMB1.Chromosome) AND (GENO.Position = COMB1.Position) ";
             $query_str = $query_str . "	LEFT JOIN " . $db . ".act_" . $dataset . "_func_eff_" . $chromosome . " AS FUNC2 ";
-            $query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) ";
+            $query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) AND (FUNC2.Gene LIKE CONCAT('%', COMB1.Gene, '%')) ";
             $query_str = $query_str . " LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
             $query_str = $query_str . " ON AM.Accession = GENO.Accession ";
             $query_str = $query_str . " GROUP BY AM.Subpopulation, GENO.Accession, COMB1.Gene, GENO.Chromosome ";
@@ -281,7 +281,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
             $query_str = $query_str . "	INNER JOIN " . $db . ".act_" . $dataset . "_genotype_" . $chromosome . " AS GENO ";
             $query_str = $query_str . "	ON (GENO.Chromosome = COMB1.Chromosome) AND (GENO.Position = COMB1.Position) ";
             $query_str = $query_str . "	LEFT JOIN " . $db . ".act_" . $dataset . "_func_eff_" . $chromosome . " AS FUNC2 ";
-            $query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) ";
+            $query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) AND (FUNC2.Gene LIKE CONCAT('%', COMB1.Gene, '%')) ";
             $query_str = $query_str . " LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
             $query_str = $query_str . " ON AM.Accession = GENO.Accession ";
             $query_str = $query_str . " GROUP BY GENO.Accession, COMB1.Gene, GENO.Chromosome ";
@@ -320,7 +320,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
             $query_str = $query_str . "	INNER JOIN " . $db . ".act_" . $dataset . "_genotype_" . $chromosome . " AS GENO ";
             $query_str = $query_str . "	ON (GENO.Chromosome = COMB1.Chromosome) AND (GENO.Position = COMB1.Position) ";
             $query_str = $query_str . "	LEFT JOIN " . $db . ".act_" . $dataset . "_func_eff_" . $chromosome . " AS FUNC2 ";
-            $query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) ";
+            $query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) AND (FUNC2.Gene LIKE CONCAT('%', COMB1.Gene, '%')) ";
             $query_str = $query_str . " LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
             $query_str = $query_str . " ON BINARY AM.Accession = GENO.Accession ";
             $query_str = $query_str . " GROUP BY AM.Kernel_Type, AM.Improvement_Status, AM.Country, AM.State, GENO.Accession, AM.Panzea_Accession, COMB1.Gene, GENO.Chromosome ";
@@ -351,7 +351,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
             $query_str = $query_str . "	INNER JOIN " . $db . ".act_" . $dataset . "_genotype_" . $chromosome . " AS GENO ";
             $query_str = $query_str . "	ON (GENO.Chromosome = COMB1.Chromosome) AND (GENO.Position = COMB1.Position) ";
             $query_str = $query_str . "	LEFT JOIN " . $db . ".act_" . $dataset . "_func_eff_" . $chromosome . " AS FUNC2 ";
-            $query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) ";
+            $query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) AND (FUNC2.Gene LIKE CONCAT('%', COMB1.Gene, '%')) ";
             $query_str = $query_str . " LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
             $query_str = $query_str . " ON AM.Accession = GENO.Accession ";
             $query_str = $query_str . " GROUP BY AM.Admixture_Group, AM.Group, AM.Country, AM.State, GENO.Accession, AM.TAIR_Accession, AM.Name, COMB1.Gene, GENO.Chromosome ";
@@ -381,7 +381,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
             $query_str = $query_str . "	INNER JOIN " . $db . ".act_" . $dataset . "_genotype_" . $chromosome . " AS GENO ";
             $query_str = $query_str . "	ON (GENO.Chromosome = COMB1.Chromosome) AND (GENO.Position = COMB1.Position) ";
             $query_str = $query_str . "	LEFT JOIN " . $db . ".act_" . $dataset . "_func_eff_" . $chromosome . " AS FUNC2 ";
-            $query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) ";
+            $query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) AND (FUNC2.Gene LIKE CONCAT('%', COMB1.Gene, '%')) ";
             $query_str = $query_str . " LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
             $query_str = $query_str . " ON AM.Accession = GENO.Accession ";
             $query_str = $query_str . " GROUP BY GENO.Accession, COMB1.Gene, GENO.Chromosome ";
@@ -412,7 +412,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
             $query_str = $query_str . "	INNER JOIN " . $db . ".act_" . $dataset . "_genotype_" . $chromosome . " AS GENO ";
             $query_str = $query_str . "	ON (GENO.Chromosome = COMB1.Chromosome) AND (GENO.Position = COMB1.Position) ";
             $query_str = $query_str . "	LEFT JOIN " . $db . ".act_" . $dataset . "_func_eff_" . $chromosome . " AS FUNC2 ";
-            $query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) ";
+            $query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) AND (FUNC2.Gene LIKE CONCAT('%', COMB1.Gene, '%')) ";
             $query_str = $query_str . " LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
             $query_str = $query_str . " ON AM.Accession = GENO.Accession ";
             $query_str = $query_str . " GROUP BY AM.Subpopulation, AM.Country, GENO.Accession, COMB1.Gene, GENO.Chromosome ";
@@ -442,7 +442,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
             $query_str = $query_str . "	INNER JOIN " . $db . ".act_" . $dataset . "_genotype_" . $chromosome . " AS GENO ";
             $query_str = $query_str . "	ON (GENO.Chromosome = COMB1.Chromosome) AND (GENO.Position = COMB1.Position) ";
             $query_str = $query_str . "	LEFT JOIN " . $db . ".act_" . $dataset . "_func_eff_" . $chromosome . " AS FUNC2 ";
-            $query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) ";
+            $query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) AND (FUNC2.Gene LIKE CONCAT('%', COMB1.Gene, '%')) ";
             $query_str = $query_str . " LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
             $query_str = $query_str . " ON AM.Accession = GENO.Accession ";
             $query_str = $query_str . " GROUP BY GENO.Accession, AM.CBI_Coding_ID, COMB1.Gene, GENO.Chromosome ";
