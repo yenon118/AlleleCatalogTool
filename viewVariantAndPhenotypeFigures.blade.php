@@ -4,6 +4,7 @@ include resource_path() . '/views/system/config.blade.php';
 $organism = $info['organism'];
 $chromosome = $info['chromosome'];
 $position = $info['position'];
+$gene = $info['gene'];
 $genotype_array = $info['genotype_array'];
 $phenotype = $info['phenotype'];
 $dataset = $info['dataset'];
@@ -57,6 +58,7 @@ $dataset = $info['dataset'];
     var organism = <?php if(isset($organism)) {echo json_encode($organism, JSON_INVALID_UTF8_IGNORE);} else {echo "";}?>;
     var chromosome = <?php if(isset($chromosome)) {echo json_encode($chromosome, JSON_INVALID_UTF8_IGNORE);} else {echo "";}?>;
     var position = <?php if(isset($position)) {echo json_encode($position, JSON_INVALID_UTF8_IGNORE);} else {echo "";}?>;
+    var gene = <?php if(isset($gene)) {echo json_encode($gene, JSON_INVALID_UTF8_IGNORE);} else {echo "";}?>;
     var phenotype = <?php if(isset($phenotype)) {echo json_encode($phenotype, JSON_INVALID_UTF8_IGNORE);} else {echo "";}?>;
     var genotype_array = <?php if(isset($genotype_array) && is_array($genotype_array) && !empty($genotype_array)) {echo json_encode($genotype_array, JSON_INVALID_UTF8_IGNORE);} else {echo "";}?>;
     var dataset = <?php if(isset($dataset)) {echo json_encode($dataset, JSON_INVALID_UTF8_IGNORE);} else {echo "";}?>;
@@ -84,6 +86,7 @@ $dataset = $info['dataset'];
                 Organism: organism,
                 Chromosome: chromosome,
                 Position: position,
+                Gene: gene,
                 Genotype: genotype_array,
                 Phenotype: phenotype,
                 Dataset: dataset

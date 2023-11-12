@@ -5,6 +5,7 @@ $organism = $info['organism'];
 $chromosome = $info['chromosome'];
 $position = $info['position'];
 $dataset = $info['dataset'];
+$gene = $info['gene'];
 $genotype_selection_arr = $info['genotype_selection_arr'];
 $phenotype_selection_arr = $info['phenotype_selection_arr'];
 
@@ -39,6 +40,9 @@ $phenotype_selection_arr = $info['phenotype_selection_arr'];
 
             <label for="position_1">Position:</label>
             <input type="text" id="position_1" name="position_1" size="30" value="{{ $position }}" style="margin-right:50px;">
+
+            <label for="gene_1">Gene:</label>
+            <input type="text" id="gene_1" name="gene_1" size="30" value="{{ $gene }}" style="margin-right:50px;">
         </div>
         @php
             if(isset($genotype_selection_arr) && is_array($genotype_selection_arr) && !empty($genotype_selection_arr)) {
