@@ -55,13 +55,13 @@ class KBCToolsAlleleCatalogToolController extends Controller
 			$phenotype_table = "act_" . $dataset . "_Phenotype_Data";
 			$phenotype_selection_table = "act_" . $dataset . "_Phenotype_Selection";
 		} elseif ($organism == "Sbicolor" && $dataset == "Sorghum400") {
-			$key_column = "";
+			$key_column = "Improvement_Status";
 			$gff_table = "act_Sbicolor_v3_1_1_GFF";
 			$accession_mapping_table = "act_" . $dataset . "_Accession_Mapping";
 			$phenotype_table = "";
 			$phenotype_selection_table = "";
 		} elseif ($organism == "Sbicolor" && $dataset == "Sorghum499") {
-			$key_column = "";
+			$key_column = "Improvement_Status";
 			$gff_table = "act_Sbicolor_v3_1_1_GFF";
 			$accession_mapping_table = "act_" . $dataset . "_Accession_Mapping";
 			$phenotype_table = "";
@@ -304,10 +304,22 @@ class KBCToolsAlleleCatalogToolController extends Controller
 		} elseif ($organism == "Sbicolor" && $dataset == "Sorghum400") {
 			// Generate SQL string
 			$query_str = "SELECT ";
+			if (in_array("Converted", $improvement_status_array)) {
+				$query_str = $query_str . "COUNT(IF(ACD.Improvement_Status = 'Converted', 1, null)) AS Converted, ";
+			}
+			if (in_array("Improved", $improvement_status_array)) {
+				$query_str = $query_str . "COUNT(IF(ACD.Improvement_Status = 'Improved', 1, null)) AS Improved, ";
+			}
+			if (in_array("Landrace", $improvement_status_array)) {
+				$query_str = $query_str . "COUNT(IF(ACD.Improvement_Status = 'Landrace', 1, null)) AS Landrace, ";
+			}
+			if (in_array("Wild", $improvement_status_array)) {
+				$query_str = $query_str . "COUNT(IF(ACD.Improvement_Status = 'Wild', 1, null)) AS Wild, ";
+			}
 			$query_str = $query_str . "COUNT(ACD.Accession) AS Total, ";
 			$query_str = $query_str . "ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description ";
 			$query_str = $query_str . "FROM ( ";
-			$query_str = $query_str . " SELECT GENO.Accession, ";
+			$query_str = $query_str . " SELECT AM.Improvement_Status, GENO.Accession, ";
 			$query_str = $query_str . "	COMB1.Gene, GENO.Chromosome, ";
 			$query_str = $query_str . "	GROUP_CONCAT(GENO.Position ORDER BY GENO.Position ASC SEPARATOR ' ') AS Position, ";
 			$query_str = $query_str . "	GROUP_CONCAT(GENO.Genotype ORDER BY GENO.Position ASC SEPARATOR ' ') AS Genotype, ";
@@ -326,7 +338,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
 			$query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) AND (FUNC2.Gene LIKE CONCAT('%', COMB1.Gene, '%')) ";
 			$query_str = $query_str . " LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
 			$query_str = $query_str . " ON AM.Accession = GENO.Accession ";
-			$query_str = $query_str . " GROUP BY GENO.Accession, COMB1.Gene, GENO.Chromosome ";
+			$query_str = $query_str . " GROUP BY AM.Improvement_Status, GENO.Accession, COMB1.Gene, GENO.Chromosome ";
 			$query_str = $query_str . ") AS ACD ";
 			$query_str = $query_str . "GROUP BY ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description ";
 			$query_str = $query_str . $having;
@@ -334,10 +346,22 @@ class KBCToolsAlleleCatalogToolController extends Controller
 		} elseif ($organism == "Sbicolor" && $dataset == "Sorghum499") {
 			// Generate SQL string
 			$query_str = "SELECT ";
+			if (in_array("Converted", $improvement_status_array)) {
+				$query_str = $query_str . "COUNT(IF(ACD.Improvement_Status = 'Converted', 1, null)) AS Converted, ";
+			}
+			if (in_array("Improved", $improvement_status_array)) {
+				$query_str = $query_str . "COUNT(IF(ACD.Improvement_Status = 'Improved', 1, null)) AS Improved, ";
+			}
+			if (in_array("Landrace", $improvement_status_array)) {
+				$query_str = $query_str . "COUNT(IF(ACD.Improvement_Status = 'Landrace', 1, null)) AS Landrace, ";
+			}
+			if (in_array("Wild", $improvement_status_array)) {
+				$query_str = $query_str . "COUNT(IF(ACD.Improvement_Status = 'Wild', 1, null)) AS Wild, ";
+			}
 			$query_str = $query_str . "COUNT(ACD.Accession) AS Total, ";
 			$query_str = $query_str . "ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description ";
 			$query_str = $query_str . "FROM ( ";
-			$query_str = $query_str . " SELECT GENO.Accession, ";
+			$query_str = $query_str . " SELECT AM.Improvement_Status, GENO.Accession, ";
 			$query_str = $query_str . "	COMB1.Gene, GENO.Chromosome, ";
 			$query_str = $query_str . "	GROUP_CONCAT(GENO.Position ORDER BY GENO.Position ASC SEPARATOR ' ') AS Position, ";
 			$query_str = $query_str . "	GROUP_CONCAT(GENO.Genotype ORDER BY GENO.Position ASC SEPARATOR ' ') AS Genotype, ";
@@ -356,7 +380,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
 			$query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) AND (FUNC2.Gene LIKE CONCAT('%', COMB1.Gene, '%')) ";
 			$query_str = $query_str . " LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
 			$query_str = $query_str . " ON AM.Accession = GENO.Accession ";
-			$query_str = $query_str . " GROUP BY GENO.Accession, COMB1.Gene, GENO.Chromosome ";
+			$query_str = $query_str . " GROUP BY AM.Improvement_Status, GENO.Accession, COMB1.Gene, GENO.Chromosome ";
 			$query_str = $query_str . ") AS ACD ";
 			$query_str = $query_str . "GROUP BY ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description ";
 			$query_str = $query_str . $having;
@@ -524,11 +548,11 @@ class KBCToolsAlleleCatalogToolController extends Controller
 		} elseif ($organism == "Sbicolor" && $dataset == "Sorghum400") {
 			// Generate SQL string
 			$query_str = "SELECT ";
-			$query_str = $query_str . "ACD.Common_Name, ACD.SC_Number, ACD.Origin, ACD.Original_Race, ACD.Working_Group, ACD.Subgroup, ";
+			$query_str = $query_str . "ACD.Name, ACD.PI_Number, ACD.Origin, ACD.Race, ACD.Improvement_Status, ";
 			$query_str = $query_str . "ACD.Accession, ";
 			$query_str = $query_str . "ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description, ACD.Imputation ";
 			$query_str = $query_str . "FROM ( ";
-			$query_str = $query_str . " SELECT AM.Common_Name, AM.SC_Number, AM.Origin, AM.Original_Race, AM.Working_Group, AM.Subgroup, ";
+			$query_str = $query_str . " SELECT AM.Name, AM.PI_Number, AM.Origin, AM.Race, AM.Improvement_Status, ";
 			$query_str = $query_str . " GENO.Accession, ";
 			$query_str = $query_str . "	COMB1.Gene, GENO.Chromosome, ";
 			$query_str = $query_str . "	GROUP_CONCAT(GENO.Position ORDER BY GENO.Position ASC SEPARATOR ' ') AS Position, ";
@@ -548,18 +572,18 @@ class KBCToolsAlleleCatalogToolController extends Controller
 			$query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) AND (FUNC2.Gene LIKE CONCAT('%', COMB1.Gene, '%')) ";
 			$query_str = $query_str . " LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
 			$query_str = $query_str . " ON AM.Accession = GENO.Accession ";
-			$query_str = $query_str . " GROUP BY AM.Common_Name, AM.SC_Number, AM.Origin, AM.Original_Race, AM.Working_Group, AM.Subgroup, GENO.Accession, COMB1.Gene, GENO.Chromosome ";
+			$query_str = $query_str . " GROUP BY AM.Name, AM.PI_Number, AM.Origin, AM.Race, AM.Improvement_Status, GENO.Accession, COMB1.Gene, GENO.Chromosome ";
 			$query_str = $query_str . ") AS ACD ";
 			$query_str = $query_str . $where;
 			$query_str = $query_str . "ORDER BY ACD.Gene; ";
 		} elseif ($organism == "Sbicolor" && $dataset == "Sorghum499") {
 			// Generate SQL string
 			$query_str = "SELECT ";
-			$query_str = $query_str . "ACD.Batch, ACD.Origin, ACD.Original_Race, ACD.Type, ACD.Depth, ";
+			$query_str = $query_str . "ACD.Name, ACD.PI_Number, ACD.Origin, ACD.Race, ACD.Improvement_Status, ";
 			$query_str = $query_str . "ACD.Accession, ";
 			$query_str = $query_str . "ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description, ACD.Imputation ";
 			$query_str = $query_str . "FROM ( ";
-			$query_str = $query_str . " SELECT AM.Batch, AM.Origin, AM.Original_Race, AM.Type, AM.Depth, ";
+			$query_str = $query_str . " SELECT AM.Name, AM.PI_Number, AM.Origin, AM.Race, AM.Improvement_Status, ";
 			$query_str = $query_str . " GENO.Accession, ";
 			$query_str = $query_str . "	COMB1.Gene, GENO.Chromosome, ";
 			$query_str = $query_str . "	GROUP_CONCAT(GENO.Position ORDER BY GENO.Position ASC SEPARATOR ' ') AS Position, ";
@@ -579,7 +603,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
 			$query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) AND (FUNC2.Gene LIKE CONCAT('%', COMB1.Gene, '%')) ";
 			$query_str = $query_str . " LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
 			$query_str = $query_str . " ON AM.Accession = GENO.Accession ";
-			$query_str = $query_str . " GROUP BY AM.Batch, AM.Origin, AM.Original_Race, AM.Type, AM.Depth, GENO.Accession, COMB1.Gene, GENO.Chromosome ";
+			$query_str = $query_str . " GROUP BY AM.Name, AM.PI_Number, AM.Origin, AM.Race, AM.Improvement_Status, GENO.Accession, COMB1.Gene, GENO.Chromosome ";
 			$query_str = $query_str . ") AS ACD ";
 			$query_str = $query_str . $where;
 			$query_str = $query_str . "ORDER BY ACD.Gene; ";
@@ -652,6 +676,10 @@ class KBCToolsAlleleCatalogToolController extends Controller
 			} elseif ($organism == "Osativa") {
 				$key_column = "Subpopulation";
 				$sql = "SELECT DISTINCT Subpopulation AS `Key` FROM " . $db . "." . $accession_mapping_table . ";";
+				$improvement_status_array = DB::connection($db)->select($sql);
+			} elseif ($organism == "Sbicolor") {
+				$key_column = "Improvement_Status";
+				$sql = "SELECT DISTINCT Improvement_Status AS `Key` FROM " . $db . "." . $accession_mapping_table . " WHERE Improvement_Status IS NOT NULL;";
 				$improvement_status_array = DB::connection($db)->select($sql);
 			} else {
 				$key_column = "";
@@ -730,6 +758,10 @@ class KBCToolsAlleleCatalogToolController extends Controller
 			$sql = "SELECT DISTINCT `Group` AS `Key` FROM " . $db . "." . $accession_mapping_table . ";";
 		} elseif ($organism == "Osativa" && $dataset == "Rice3000") {
 			$sql = "SELECT DISTINCT Subpopulation AS `Key` FROM " . $db . "." . $accession_mapping_table . ";";
+		} elseif ($organism == "Sbicolor" && $dataset == "Sorghum400") {
+			$sql = "SELECT DISTINCT Improvement_Status AS `Key` FROM " . $db . "." . $accession_mapping_table . " WHERE Improvement_Status IS NOT NULL;";
+		} elseif ($organism == "Sbicolor" && $dataset == "Sorghum499") {
+			$sql = "SELECT DISTINCT Improvement_Status AS `Key` FROM " . $db . "." . $accession_mapping_table . " WHERE Improvement_Status IS NOT NULL;";
 		} else {
 			$sql = "";
 		}
