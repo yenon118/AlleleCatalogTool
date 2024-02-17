@@ -859,27 +859,41 @@ class KBCToolsAlleleCatalogToolController extends Controller
 		$improvement_status = $request->improvement_status_1;
 
 		if (is_string($gene)) {
-			$gene_array = preg_split("/[;, \n]+/", $gene);
-			for ($i = 0; $i < count($gene_array); $i++) {
-				$gene_array[$i] = trim($gene_array[$i]);
+			$gene = trim($gene);
+			$temp_gene_array = preg_split("/[;, \n]+/", $gene);
+			$gene_array = array();
+			for ($i = 0; $i < count($temp_gene_array); $i++) {
+				if (!empty(trim($temp_gene_array[$i]))) {
+					array_push($gene_array, trim($temp_gene_array[$i]));
+				}
 			}
 		} elseif (is_array($gene)) {
-			$gene_array = $gene;
-			for ($i = 0; $i < count($gene_array); $i++) {
-				$gene_array[$i] = trim($gene_array[$i]);
+			$temp_gene_array = $gene;
+			$gene_array = array();
+			for ($i = 0; $i < count($temp_gene_array); $i++) {
+				if (!empty(trim($temp_gene_array[$i]))) {
+					array_push($gene_array, trim($temp_gene_array[$i]));
+				}
 			}
 		}
 
 		if (isset($improvement_status)) {
 			if (is_string($improvement_status)) {
-				$improvement_status_array = preg_split("/[;, \n]+/", $improvement_status);
-				for ($i = 0; $i < count($improvement_status_array); $i++) {
-					$improvement_status_array[$i] = trim($improvement_status_array[$i]);
+				$improvement_status = trim($improvement_status);
+				$temp_improvement_status_array = preg_split("/[;, \n]+/", $improvement_status);
+				$improvement_status_array = array();
+				for ($i = 0; $i < count($temp_improvement_status_array); $i++) {
+					if (!empty(trim($temp_improvement_status_array[$i]))) {
+						array_push($improvement_status_array, trim($temp_improvement_status_array[$i]));
+					}
 				}
 			} elseif (is_array($improvement_status)) {
-				$improvement_status_array = $improvement_status;
-				for ($i = 0; $i < count($improvement_status_array); $i++) {
-					$improvement_status_array[$i] = trim($improvement_status_array[$i]);
+				$temp_improvement_status_array = $improvement_status;
+				$improvement_status_array = array();
+				for ($i = 0; $i < count($temp_improvement_status_array); $i++) {
+					if (!empty(trim($temp_improvement_status_array[$i]))) {
+						array_push($improvement_status_array, trim($temp_improvement_status_array[$i]));
+					}
 				}
 			}
 		} else {
@@ -1010,14 +1024,21 @@ class KBCToolsAlleleCatalogToolController extends Controller
 
 		if (isset($improvement_status)) {
 			if (is_string($improvement_status)) {
-				$improvement_status_array = preg_split("/[;, \n]+/", $improvement_status);
-				for ($i = 0; $i < count($improvement_status_array); $i++) {
-					$improvement_status_array[$i] = trim($improvement_status_array[$i]);
+				$improvement_status = trim($improvement_status);
+				$temp_improvement_status_array = preg_split("/[;, \n]+/", $improvement_status);
+				$improvement_status_array = array();
+				for ($i = 0; $i < count($temp_improvement_status_array); $i++) {
+					if (!empty(trim($temp_improvement_status_array[$i]))) {
+						array_push($improvement_status_array, trim($temp_improvement_status_array[$i]));
+					}
 				}
 			} elseif (is_array($improvement_status)) {
-				$improvement_status_array = $improvement_status;
-				for ($i = 0; $i < count($improvement_status_array); $i++) {
-					$improvement_status_array[$i] = trim($improvement_status_array[$i]);
+				$temp_improvement_status_array = $improvement_status;
+				$improvement_status_array = array();
+				for ($i = 0; $i < count($temp_improvement_status_array); $i++) {
+					if (!empty(trim($temp_improvement_status_array[$i]))) {
+						array_push($improvement_status_array, trim($temp_improvement_status_array[$i]));
+					}
 				}
 			}
 		} else {
@@ -1064,14 +1085,21 @@ class KBCToolsAlleleCatalogToolController extends Controller
 		$improvement_status = $request->Improvement_Status_Array;
 
 		if (is_string($improvement_status)) {
-			$improvement_status_array = preg_split("/[;, \n]+/", $improvement_status);
-			for ($i = 0; $i < count($improvement_status_array); $i++) {
-				$improvement_status_array[$i] = trim($improvement_status_array[$i]);
+			$improvement_status = trim($improvement_status);
+			$temp_improvement_status_array = preg_split("/[;, \n]+/", $improvement_status);
+			$improvement_status_array = array();
+			for ($i = 0; $i < count($temp_improvement_status_array); $i++) {
+				if (!empty(trim($temp_improvement_status_array[$i]))) {
+					array_push($improvement_status_array, trim($temp_improvement_status_array[$i]));
+				}
 			}
 		} elseif (is_array($improvement_status)) {
-			$improvement_status_array = $improvement_status;
-			for ($i = 0; $i < count($improvement_status_array); $i++) {
-				$improvement_status_array[$i] = trim($improvement_status_array[$i]);
+			$temp_improvement_status_array = $improvement_status;
+			$improvement_status_array = array();
+			for ($i = 0; $i < count($temp_improvement_status_array); $i++) {
+				if (!empty(trim($temp_improvement_status_array[$i]))) {
+					array_push($improvement_status_array, trim($temp_improvement_status_array[$i]));
+				}
 			}
 		}
 
@@ -1125,26 +1153,40 @@ class KBCToolsAlleleCatalogToolController extends Controller
 		$improvement_status = $request->Improvement_Status_Array;
 
 		if (is_string($gene)) {
-			$gene_array = preg_split("/[;, \n]+/", $gene);
-			for ($i = 0; $i < count($gene_array); $i++) {
-				$gene_array[$i] = trim($gene_array[$i]);
+			$gene = trim($gene);
+			$temp_gene_array = preg_split("/[;, \n]+/", $gene);
+			$gene_array = array();
+			for ($i = 0; $i < count($temp_gene_array); $i++) {
+				if (!empty(trim($temp_gene_array[$i]))) {
+					array_push($gene_array, trim($temp_gene_array[$i]));
+				}
 			}
 		} elseif (is_array($gene)) {
-			$gene_array = $gene;
-			for ($i = 0; $i < count($gene_array); $i++) {
-				$gene_array[$i] = trim($gene_array[$i]);
+			$temp_gene_array = $gene;
+			$gene_array = array();
+			for ($i = 0; $i < count($temp_gene_array); $i++) {
+				if (!empty(trim($temp_gene_array[$i]))) {
+					array_push($gene_array, trim($temp_gene_array[$i]));
+				}
 			}
 		}
 
 		if (is_string($improvement_status)) {
-			$improvement_status_array = preg_split("/[;, \n]+/", $improvement_status);
-			for ($i = 0; $i < count($improvement_status_array); $i++) {
-				$improvement_status_array[$i] = trim($improvement_status_array[$i]);
+			$improvement_status = trim($improvement_status);
+			$temp_improvement_status_array = preg_split("/[;, \n]+/", $improvement_status);
+			$improvement_status_array = array();
+			for ($i = 0; $i < count($temp_improvement_status_array); $i++) {
+				if (!empty(trim($temp_improvement_status_array[$i]))) {
+					array_push($improvement_status_array, trim($temp_improvement_status_array[$i]));
+				}
 			}
 		} elseif (is_array($improvement_status)) {
-			$improvement_status_array = $improvement_status;
-			for ($i = 0; $i < count($improvement_status_array); $i++) {
-				$improvement_status_array[$i] = trim($improvement_status_array[$i]);
+			$temp_improvement_status_array = $improvement_status;
+			$improvement_status_array = array();
+			for ($i = 0; $i < count($temp_improvement_status_array); $i++) {
+				if (!empty(trim($temp_improvement_status_array[$i]))) {
+					array_push($improvement_status_array, trim($temp_improvement_status_array[$i]));
+				}
 			}
 		}
 
@@ -1197,26 +1239,40 @@ class KBCToolsAlleleCatalogToolController extends Controller
 		$improvement_status = $request->Improvement_Status_Array;
 
 		if (is_string($gene)) {
-			$gene_array = preg_split("/[;, \n]+/", $gene);
-			for ($i = 0; $i < count($gene_array); $i++) {
-				$gene_array[$i] = trim($gene_array[$i]);
+			$gene = trim($gene);
+			$temp_gene_array = preg_split("/[;, \n]+/", $gene);
+			$gene_array = array();
+			for ($i = 0; $i < count($temp_gene_array); $i++) {
+				if (!empty(trim($temp_gene_array[$i]))) {
+					array_push($gene_array, trim($temp_gene_array[$i]));
+				}
 			}
 		} elseif (is_array($gene)) {
-			$gene_array = $gene;
-			for ($i = 0; $i < count($gene_array); $i++) {
-				$gene_array[$i] = trim($gene_array[$i]);
+			$temp_gene_array = $gene;
+			$gene_array = array();
+			for ($i = 0; $i < count($temp_gene_array); $i++) {
+				if (!empty(trim($temp_gene_array[$i]))) {
+					array_push($gene_array, trim($temp_gene_array[$i]));
+				}
 			}
 		}
 
 		if (is_string($improvement_status)) {
-			$improvement_status_array = preg_split("/[;, \n]+/", $improvement_status);
-			for ($i = 0; $i < count($improvement_status_array); $i++) {
-				$improvement_status_array[$i] = trim($improvement_status_array[$i]);
+			$improvement_status = trim($improvement_status);
+			$temp_improvement_status_array = preg_split("/[;, \n]+/", $improvement_status);
+			$improvement_status_array = array();
+			for ($i = 0; $i < count($temp_improvement_status_array); $i++) {
+				if (!empty(trim($temp_improvement_status_array[$i]))) {
+					array_push($improvement_status_array, trim($temp_improvement_status_array[$i]));
+				}
 			}
 		} elseif (is_array($improvement_status)) {
-			$improvement_status_array = $improvement_status;
-			for ($i = 0; $i < count($improvement_status_array); $i++) {
-				$improvement_status_array[$i] = trim($improvement_status_array[$i]);
+			$temp_improvement_status_array = $improvement_status;
+			$improvement_status_array = array();
+			for ($i = 0; $i < count($temp_improvement_status_array); $i++) {
+				if (!empty(trim($temp_improvement_status_array[$i]))) {
+					array_push($improvement_status_array, trim($temp_improvement_status_array[$i]));
+				}
 			}
 		}
 
@@ -1282,14 +1338,21 @@ class KBCToolsAlleleCatalogToolController extends Controller
 		$accession = $request->accession_2;
 
 		if (is_string($accession)) {
-			$accession_array = preg_split("/[;, \n]+/", $accession);
-			for ($i = 0; $i < count($accession_array); $i++) {
-				$accession_array[$i] = trim($accession_array[$i]);
+			$accession = trim($accession);
+			$temp_accession_array = preg_split("/[;, \n]+/", $accession);
+			$accession_array = array();
+			for ($i = 0; $i < count($temp_accession_array); $i++) {
+				if (!empty(trim($temp_accession_array[$i]))) {
+					array_push($accession_array, trim($temp_accession_array[$i]));
+				}
 			}
 		} elseif (is_array($accession)) {
-			$accession_array = $accession;
-			for ($i = 0; $i < count($accession_array); $i++) {
-				$accession_array[$i] = trim($accession_array[$i]);
+			$temp_accession_array = $accession;
+			$accession_array = array();
+			for ($i = 0; $i < count($temp_accession_array); $i++) {
+				if (!empty(trim($temp_accession_array[$i]))) {
+					array_push($accession_array, trim($temp_accession_array[$i]));
+				}
 			}
 		}
 
@@ -1467,14 +1530,21 @@ class KBCToolsAlleleCatalogToolController extends Controller
 		$accession = $request->Accession_Array;
 
 		if (is_string($accession)) {
-			$accession_array = preg_split("/[;, \n]+/", $accession);
-			for ($i = 0; $i < count($accession_array); $i++) {
-				$accession_array[$i] = trim($accession_array[$i]);
+			$accession = trim($accession);
+			$temp_accession_array = preg_split("/[;, \n]+/", $accession);
+			$accession_array = array();
+			for ($i = 0; $i < count($temp_accession_array); $i++) {
+				if (!empty(trim($temp_accession_array[$i]))) {
+					array_push($accession_array, trim($temp_accession_array[$i]));
+				}
 			}
 		} elseif (is_array($accession)) {
-			$accession_array = $accession;
-			for ($i = 0; $i < count($accession_array); $i++) {
-				$accession_array[$i] = trim($accession_array[$i]);
+			$temp_accession_array = $accession;
+			$accession_array = array();
+			for ($i = 0; $i < count($temp_accession_array); $i++) {
+				if (!empty(trim($temp_accession_array[$i]))) {
+					array_push($accession_array, trim($temp_accession_array[$i]));
+				}
 			}
 		}
 
@@ -1761,26 +1831,40 @@ class KBCToolsAlleleCatalogToolController extends Controller
 		$dataset = $request->Dataset;
 
 		if (is_string($genotype)) {
-			$genotype_array = preg_split("/[;, \n]+/", $genotype);
-			for ($i = 0; $i < count($genotype_array); $i++) {
-				$genotype_array[$i] = trim($genotype_array[$i]);
+			$genotype = trim($genotype);
+			$temp_genotype_array = preg_split("/[;, \n]+/", $genotype);
+			$genotype_array = array();
+			for ($i = 0; $i < count($temp_genotype_array); $i++) {
+				if (!empty(trim($temp_genotype_array[$i]))) {
+					array_push($genotype_array, trim($temp_genotype_array[$i]));
+				}
 			}
 		} elseif (is_array($genotype)) {
-			$genotype_array = $genotype;
-			for ($i = 0; $i < count($genotype_array); $i++) {
-				$genotype_array[$i] = trim($genotype_array[$i]);
+			$temp_genotype_array = $genotype;
+			$genotype_array = array();
+			for ($i = 0; $i < count($temp_genotype_array); $i++) {
+				if (!empty(trim($temp_genotype_array[$i]))) {
+					array_push($genotype_array, trim($temp_genotype_array[$i]));
+				}
 			}
 		}
 
 		if (is_string($phenotype)) {
-			$phenotype_array = preg_split("/[;, \n]+/", $phenotype);
-			for ($i = 0; $i < count($phenotype_array); $i++) {
-				$phenotype_array[$i] = trim($phenotype_array[$i]);
+			$phenotype = trim($phenotype);
+			$temp_phenotype_array = preg_split("/[;, \n]+/", $phenotype);
+			$phenotype_array = array();
+			for ($i = 0; $i < count($temp_phenotype_array); $i++) {
+				if (!empty(trim($temp_phenotype_array[$i]))) {
+					array_push($phenotype_array, trim($temp_phenotype_array[$i]));
+				}
 			}
 		} elseif (is_array($phenotype)) {
-			$phenotype_array = $phenotype;
-			for ($i = 0; $i < count($phenotype_array); $i++) {
-				$phenotype_array[$i] = trim($phenotype_array[$i]);
+			$temp_phenotype_array = $phenotype;
+			$phenotype_array = array();
+			for ($i = 0; $i < count($temp_phenotype_array); $i++) {
+				if (!empty(trim($temp_phenotype_array[$i]))) {
+					array_push($phenotype_array, trim($temp_phenotype_array[$i]));
+				}
 			}
 		}
 
@@ -1859,14 +1943,21 @@ class KBCToolsAlleleCatalogToolController extends Controller
 		$dataset = $request->dataset_1;
 
 		if (is_string($genotype)) {
-			$genotype_array = preg_split("/[;, \n]+/", $genotype);
-			for ($i = 0; $i < count($genotype_array); $i++) {
-				$genotype_array[$i] = trim($genotype_array[$i]);
+			$genotype = trim($genotype);
+			$temp_genotype_array = preg_split("/[;, \n]+/", $genotype);
+			$genotype_array = array();
+			for ($i = 0; $i < count($temp_genotype_array); $i++) {
+				if (!empty(trim($temp_genotype_array[$i]))) {
+					array_push($genotype_array, trim($temp_genotype_array[$i]));
+				}
 			}
 		} elseif (is_array($genotype)) {
-			$genotype_array = $genotype;
-			for ($i = 0; $i < count($genotype_array); $i++) {
-				$genotype_array[$i] = trim($genotype_array[$i]);
+			$temp_genotype_array = $genotype;
+			$genotype_array = array();
+			for ($i = 0; $i < count($temp_genotype_array); $i++) {
+				if (!empty(trim($temp_genotype_array[$i]))) {
+					array_push($genotype_array, trim($temp_genotype_array[$i]));
+				}
 			}
 		}
 
