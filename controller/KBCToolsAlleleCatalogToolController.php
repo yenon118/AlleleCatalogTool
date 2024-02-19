@@ -124,7 +124,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
 			$query_str = $query_str . "	LEFT JOIN " . $db . ".act_" . $dataset . "_func_eff_" . $chromosome . " AS FUNC2 ";
 			$query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) AND (FUNC2.Gene LIKE CONCAT('%', COMB1.Gene, '%')) ";
 			$query_str = $query_str . " LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
-			$query_str = $query_str . " ON BINARY AM.Accession = GENO.Accession ";
+			$query_str = $query_str . " ON CAST(AM.Accession AS BINARY) = CAST(GENO.Accession AS BINARY) ";
 			$query_str = $query_str . " GROUP BY AM.Improvement_Status, GENO.Accession, COMB1.Gene, GENO.Chromosome ";
 			$query_str = $query_str . ") AS ACD ";
 			$query_str = $query_str . "GROUP BY ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description ";
@@ -418,7 +418,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
 			$query_str = $query_str . "	LEFT JOIN " . $db . ".act_" . $dataset . "_func_eff_" . $chromosome . " AS FUNC2 ";
 			$query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) AND (FUNC2.Gene LIKE CONCAT('%', COMB1.Gene, '%')) ";
 			$query_str = $query_str . " LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
-			$query_str = $query_str . " ON BINARY AM.Accession = GENO.Accession ";
+			$query_str = $query_str . " ON CAST(AM.Accession AS BINARY) = CAST(GENO.Accession AS BINARY) ";
 			$query_str = $query_str . " GROUP BY AM.Kernel_Type, AM.Improvement_Status, AM.Country, AM.State, GENO.Accession, AM.Panzea_Accession, COMB1.Gene, GENO.Chromosome ";
 			$query_str = $query_str . ") AS ACD ";
 			$query_str = $query_str . $where;
@@ -1879,7 +1879,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
 		$functional_effect_table = "act_" . $dataset . "_func_eff_" . $chromosome;
 
 		// Construct query string
-		$query_str = "SELECT G.Chromosome, G.Position, G.Accession, ";
+		$query_str = "SELECT GENO.Chromosome, GENO.Position, GENO.Accession, ";
 		if ($organism == "Osativa") {
 			$query_str = $query_str . "AM.Accession_Name, AM.IRIS_ID, AM.Subpopulation, ";
 		} elseif ($organism == "Athaliana") {
@@ -1889,30 +1889,20 @@ class KBCToolsAlleleCatalogToolController extends Controller
 		} elseif ($organism == "Ptrichocarpa") {
 			$query_str = $query_str . "AM.CBI_Coding_ID, ";
 		}
-		$query_str = $query_str . "G.Genotype, ";
-		$query_str = $query_str . "COALESCE( FUNC.Functional_Effect, G.Category ) AS Functional_Effect, G.Imputation ";
+		$query_str = $query_str . "GENO.Genotype, ";
+		$query_str = $query_str . "COALESCE( FUNC.Functional_Effect, GENO.Category ) AS Functional_Effect, GENO.Imputation ";
 		if (isset($phenotype_array) && is_array($phenotype_array) && !empty($phenotype_array)) {
 			for ($i = 0; $i < count($phenotype_array); $i++) {
 				$query_str = $query_str . ", PH." . $phenotype_array[$i] . " ";
 			}
 		}
-		$query_str = $query_str . "FROM " . $db . "." . $genotype_table . " AS G ";
-		$query_str = $query_str . "LEFT JOIN " . $db . "." . $functional_effect_table . " AS FUNC ";
-		$query_str = $query_str . "ON G.Chromosome = FUNC.Chromosome AND G.Position = FUNC.Position AND G.Genotype = FUNC.Allele AND FUNC.Gene LIKE '%" . $gene . "%' ";
-		$query_str = $query_str . "LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
-		$query_str = $query_str . "ON BINARY G.Accession = AM.Accession ";
-		if (isset($phenotype_array) && is_array($phenotype_array) && !empty($phenotype_array)) {
-			$query_str = $query_str . "LEFT JOIN " . $db . "." . $phenotype_table . " AS PH ";
-			if ($organism == "Athaliana" && $dataset == "Arabidopsis1135") {
-				$query_str = $query_str . "ON BINARY AM.TAIR_Accession = PH.Accession ";
-			} else {
-				$query_str = $query_str . "ON BINARY G.Accession = PH.Accession ";
-			}
-		}
-		$query_str = $query_str . "WHERE (G.Chromosome = '" . $chromosome . "') ";
-		$query_str = $query_str . "AND (G.Position = " . $position . ") ";
+		$query_str = $query_str . "FROM ( ";
+		$query_str = $query_str . "	SELECT G.Chromosome, G.Position, G.Accession, G.Genotype, G.Category, G.Imputation ";
+		$query_str = $query_str . "	FROM " . $db . "." . $genotype_table . " AS G ";
+		$query_str = $query_str . "	WHERE (G.Chromosome = '" . $chromosome . "') ";
+		$query_str = $query_str . "	AND (G.Position = " . $position . ") ";
 		if (count($genotype_array) > 0) {
-			$query_str = $query_str . "AND (G.Genotype IN ('";
+			$query_str = $query_str . "	AND (G.Genotype IN ('";
 			for ($i = 0; $i < count($genotype_array); $i++) {
 				if($i < (count($genotype_array)-1)){
 					$query_str = $query_str . trim($genotype_array[$i]) . "', '";
@@ -1922,7 +1912,37 @@ class KBCToolsAlleleCatalogToolController extends Controller
 			}
 			$query_str = $query_str . "')) ";
 		}
-		$query_str = $query_str . "ORDER BY G.Chromosome, G.Position, G.Genotype;";
+		$query_str = $query_str . ") AS GENO ";
+		$query_str = $query_str . "LEFT JOIN ( ";
+		$query_str = $query_str . "	SELECT F.Chromosome, F.Position, F.Allele, F.Functional_Effect, F.Gene, F.Amino_Acid_Change ";
+		$query_str = $query_str . "	FROM " . $db . "." . $functional_effect_table . " AS F ";
+		$query_str = $query_str . "	WHERE (F.Chromosome = '" . $chromosome . "') ";
+		$query_str = $query_str . "	AND (F.Position = " . $position . ") ";
+		if (count($genotype_array) > 0) {
+			$query_str = $query_str . "	AND (F.Allele IN ('";
+			for ($i = 0; $i < count($genotype_array); $i++) {
+				if($i < (count($genotype_array)-1)){
+					$query_str = $query_str . trim($genotype_array[$i]) . "', '";
+				} elseif ($i == (count($genotype_array)-1)) {
+					$query_str = $query_str . trim($genotype_array[$i]);
+				}
+			}
+			$query_str = $query_str . "')) ";
+		}
+		$query_str = $query_str . "AND F.Gene LIKE '%". $gene . "%' ";
+		$query_str = $query_str . ") AS FUNC ";
+		$query_str = $query_str . "ON GENO.Chromosome = FUNC.Chromosome AND GENO.Position = FUNC.Position AND GENO.Genotype = FUNC.Allele ";
+		$query_str = $query_str . "LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
+		$query_str = $query_str . "ON CAST(GENO.Accession AS BINARY) = CAST(AM.Accession AS BINARY) ";
+		if (isset($phenotype_array) && is_array($phenotype_array) && !empty($phenotype_array)) {
+			$query_str = $query_str . "LEFT JOIN " . $db . "." . $phenotype_table . " AS PH ";
+			if ($organism == "Athaliana" && $dataset == "Arabidopsis1135") {
+				$query_str = $query_str . "ON CAST(AM.TAIR_Accession AS BINARY) = CAST(PH.Accession AS BINARY) ";
+			} else {
+				$query_str = $query_str . "ON CAST(GENO.Accession AS BINARY) = CAST(PH.Accession AS BINARY) ";
+			}
+		}
+		$query_str = $query_str . "ORDER BY GENO.Chromosome, GENO.Position, GENO.Genotype; ";
 
 		$result_arr = DB::connection($db)->select($query_str);
 
