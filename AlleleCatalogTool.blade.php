@@ -137,7 +137,7 @@ $accession_mapping_table = $info['accession_mapping_table'];
     // View demo
     function viewDemo() {
 		let downloadAnchorNode = document.createElement('a');
-		downloadAnchorNode.setAttribute("href", "https://drive.google.com/file/d/1hpTYAwuRWh5MF9TpgBi721lyyWcDJ_5p/view");
+		downloadAnchorNode.setAttribute("href", "{{ asset('system/home/AlleleCatalogTool/videos/Allele_Catalog_Tool_Demo_ver2.mp4') }}");
 		downloadAnchorNode.setAttribute("target", "_blank");
 		document.body.appendChild(downloadAnchorNode); // required for firefox
 		downloadAnchorNode.click();
