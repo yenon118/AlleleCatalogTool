@@ -9,6 +9,13 @@ $gene = $info['gene'];
 $genotype_selection_arr = $info['genotype_selection_arr'];
 $phenotype_selection_arr = $info['phenotype_selection_arr'];
 
+$phenotype_categories = array();
+for ($i = 0; $i < count($phenotype_selection_arr); $i++) {
+    if (!in_array($phenotype_selection_arr[$i]->Phenotype_Group, $phenotype_categories)) {
+        array_push($phenotype_categories, $phenotype_selection_arr[$i]->Phenotype_Group);
+    }
+}
+
 @endphp
 
 
@@ -54,12 +61,16 @@ $phenotype_selection_arr = $info['phenotype_selection_arr'];
                 echo "</div>";
             }
             if(isset($phenotype_selection_arr) && is_array($phenotype_selection_arr) && !empty($phenotype_selection_arr)) {
-                echo "<h3>Phenotype</h3>";
-                echo "<div>";
-                for ($i = 0; $i < count($phenotype_selection_arr); $i++) {
-                    echo "<input type=\"checkbox\" id=\"" . $phenotype_selection_arr[$i]->ID . "\" name=\"" . $phenotype_selection_arr[$i]->ID . "\" value=\"" . $phenotype_selection_arr[$i]->Phenotype . "\"><label for=\"" . $phenotype_selection_arr[$i]->ID . "\" style=\"margin-right:10px;\">" . $phenotype_selection_arr[$i]->Phenotype . "</label>";
+                for ($i = 0; $i < count($phenotype_categories); $i++) {
+                    echo "<h3>$phenotype_categories[$i]</h3>";
+                    echo "<div>";
+                    for ($j = 0; $j < count($phenotype_selection_arr); $j++) {
+                        if ($phenotype_selection_arr[$j]->Phenotype_Group == $phenotype_categories[$i]) {
+                            echo "<input type=\"checkbox\" id=\"" . $phenotype_selection_arr[$j]->ID . "\" name=\"" . $phenotype_selection_arr[$j]->ID . "\" value=\"" . $phenotype_selection_arr[$j]->Phenotype . "\"><label for=\"" . $phenotype_selection_arr[$j]->ID . "\" style=\"margin-right:10px;\">" . $phenotype_selection_arr[$j]->Phenotype . "</label>";
+                        }
+                    }
+                    echo "</div>";
                 }
-                echo "</div>";
             }
         @endphp
     </div>

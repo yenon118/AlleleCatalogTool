@@ -58,14 +58,14 @@ class KBCToolsAlleleCatalogToolController extends Controller
 			$key_column = "Improvement_Status";
 			$gff_table = "act_Sbicolor_v3_1_1_GFF";
 			$accession_mapping_table = "act_" . $dataset . "_Accession_Mapping";
-			$phenotype_table = "";
-			$phenotype_selection_table = "";
+			$phenotype_table = "act_" . $dataset . "_Phenotype_Data";
+			$phenotype_selection_table = "act_" . $dataset . "_Phenotype_Selection";
 		} elseif ($organism == "Sbicolor" && $dataset == "Sorghum499") {
 			$key_column = "Improvement_Status";
 			$gff_table = "act_Sbicolor_v3_1_1_GFF";
 			$accession_mapping_table = "act_" . $dataset . "_Accession_Mapping";
-			$phenotype_table = "";
-			$phenotype_selection_table = "";
+			$phenotype_table = "act_" . $dataset . "_Phenotype_Data";
+			$phenotype_selection_table = "act_" . $dataset . "_Phenotype_Selection";
 		} else {
 			$key_column = "";
 			$gff_table = "";
