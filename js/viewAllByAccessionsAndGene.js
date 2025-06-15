@@ -1,3 +1,4 @@
+
 function convertJsonToPositionSeparatedCsv(jsonObject) {
     let csvString = '';
 
@@ -52,7 +53,7 @@ function convertJsonToCsv(jsonObject) {
         let tr_keys = Object.keys(jsonObject[i]);
         for (let j = 0; j < tr_keys.length; j++) {
             csvString += ((jsonObject[i][tr_keys[j]] === null) || (jsonObject[i][tr_keys[j]] === undefined)) ? '\"\"' : "\"" + jsonObject[i][tr_keys[j]] + "\"";
-            if (j < (tr_keys.length-1)) {
+            if (j < (tr_keys.length - 1)) {
                 csvString += ',';
             }
         }
@@ -77,9 +78,9 @@ function queryAllByAccessionsAndGene(organism, dataset, gene, accession_array_st
     let accession_array = accession_array_string.split(";");
 
     if (dataset && gene && accession_array_string) {
-        if(accession_array.length > 0) {
+        if (accession_array.length > 0) {
             $.ajax({
-                url: 'queryAllByAccessionsAndGene/'+organism,
+                url: 'queryAllByAccessionsAndGene/' + organism,
                 type: 'GET',
                 contentType: 'application/json',
                 data: {
@@ -114,11 +115,11 @@ function queryAllByAccessionsAndGene(organism, dataset, gene, accession_array_st
 }
 
 
-function queryAccessionInformation(organism, dataset){
+function queryAccessionInformation(organism, dataset) {
 
     if (dataset) {
         $.ajax({
-            url: 'queryAccessionInformation/'+organism,
+            url: 'queryAccessionInformation/' + organism,
             type: 'GET',
             contentType: 'application/json',
             data: {

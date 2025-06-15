@@ -9,7 +9,7 @@ function convertJsonToCsv(jsonObject) {
         let tr_keys = Object.keys(jsonObject[i]);
         for (let j = 0; j < tr_keys.length; j++) {
             csvString += ((jsonObject[i][tr_keys[j]] === null) || (jsonObject[i][tr_keys[j]] === undefined)) ? '\"\"' : "\"" + jsonObject[i][tr_keys[j]] + "\"";
-            if (j < (tr_keys.length-1)) {
+            if (j < (tr_keys.length - 1)) {
                 csvString += ',';
             }
         }
@@ -53,7 +53,7 @@ function check_all_genotype() {
 
 
 function uncheck_all_phenotypes(organism) {
-    let ids = document.querySelectorAll('input[id^='+organism+'_phenotype_]');
+    let ids = document.querySelectorAll('input[id^=' + organism + '_phenotype_]');
 
     for (let i = 0; i < ids.length; i++) {
         if (ids[i].checked) {
@@ -64,7 +64,7 @@ function uncheck_all_phenotypes(organism) {
 
 
 function check_all_phenotypes(organism) {
-    let ids = document.querySelectorAll('input[id^='+organism+'_phenotype_]');
+    let ids = document.querySelectorAll('input[id^=' + organism + '_phenotype_]');
 
     for (let i = 0; i < ids.length; i++) {
         if (!ids[i].checked) {
@@ -95,7 +95,7 @@ function constructInfoTable(organism, res, dataset, chromosome, position, gene, 
             detail_th.setAttribute("style", "border:1px solid black; min-width:80px; height:18.5px;");
             var detail_a = document.createElement('a');
             detail_a.target = "_blank";
-            detail_a.href = "../viewVariantAndPhenotypeFigures/"+organism+"?dataset_1=" + dataset + "&chromosome_1=" + chromosome + "&position_1=" + position + "&gene_1=" + gene + "&phenotype_1=" + header_array[i] + "&genotype_1=" + genotype_array.join("%0D%0A");
+            detail_a.href = "../viewVariantAndPhenotypeFigures/" + organism + "?dataset_1=" + dataset + "&chromosome_1=" + chromosome + "&position_1=" + position + "&gene_1=" + gene + "&phenotype_1=" + header_array[i] + "&genotype_1=" + genotype_array.join("%0D%0A");
             detail_a.innerHTML = header_array[i];
             detail_th.appendChild(detail_a);
             detail_header_tr.appendChild(detail_th);
@@ -107,7 +107,7 @@ function constructInfoTable(organism, res, dataset, chromosome, position, gene, 
 
     for (let i = 0; i < res.length; i++) {
         var detail_tr = document.createElement("tr");
-        detail_tr.style.backgroundColor = ((i%2) ? "#FFFFFF" : "#DDFFDD");
+        detail_tr.style.backgroundColor = ((i % 2) ? "#FFFFFF" : "#DDFFDD");
         for (let j = 0; j < header_array.length; j++) {
             var detail_td = document.createElement("td");
             detail_td.setAttribute("style", "border:1px solid black; min-width:80px; height:18.5px;");
@@ -123,7 +123,7 @@ function constructInfoTable(organism, res, dataset, chromosome, position, gene, 
 
 function queryPhenotypeDescription(organism, dataset) {
     $.ajax({
-        url: 'queryPhenotypeDescription/'+organism,
+        url: 'queryPhenotypeDescription/' + organism,
         type: 'GET',
         contentType: 'application/json',
         data: {
@@ -160,7 +160,7 @@ function queryVariantAndPhenotype(organism, dataset) {
     let genotype_ids = document.querySelectorAll('input[id^=genotype]');
     let genotype_array = [];
 
-    let phenotype_ids = document.querySelectorAll('input[id^='+organism+'_phenotype_]');
+    let phenotype_ids = document.querySelectorAll('input[id^=' + organism + '_phenotype_]');
     let phenotype_array = [];
 
     for (let i = 0; i < genotype_ids.length; i++) {
@@ -177,7 +177,7 @@ function queryVariantAndPhenotype(organism, dataset) {
 
     if (chromosome_1 && position_1 && genotype_array.length > 0) {
         $.ajax({
-            url: 'queryVariantAndPhenotype/'+organism,
+            url: 'queryVariantAndPhenotype/' + organism,
             type: 'GET',
             contentType: 'application/json',
             data: {
@@ -202,7 +202,7 @@ function queryVariantAndPhenotype(organism, dataset) {
                     document.getElementById('Variant_and_Phenotye_detail_table').appendChild(error_message);
                     document.getElementById('Variant_and_Phenotye_detail_table').style.overflow = 'visible';
                 }
-                
+
             },
             error: function (xhr, status, error) {
                 console.log('Error with code ' + xhr.status + ': ' + xhr.statusText);
@@ -226,7 +226,7 @@ function downloadVariantAndPhenotype(organism, dataset) {
     let genotype_ids = document.querySelectorAll('input[id^=genotype]');
     let genotype_array = [];
 
-    let phenotype_ids = document.querySelectorAll('input[id^='+organism+'_phenotype_]');
+    let phenotype_ids = document.querySelectorAll('input[id^=' + organism + '_phenotype_]');
     let phenotype_array = [];
 
     for (let i = 0; i < genotype_ids.length; i++) {
@@ -243,7 +243,7 @@ function downloadVariantAndPhenotype(organism, dataset) {
 
     if (chromosome_1 && position_1 && genotype_array.length > 0) {
         $.ajax({
-            url: 'queryVariantAndPhenotype/'+organism,
+            url: 'queryVariantAndPhenotype/' + organism,
             type: 'GET',
             contentType: 'application/json',
             data: {

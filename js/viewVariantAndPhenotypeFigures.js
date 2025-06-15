@@ -12,7 +12,7 @@ function processQueriedData(jsonObject, phenotype) {
     }
     idx_array.reverse();
     for (let i = 0; i < idx_array.length; i++) {
-        jsonObject.splice(idx_array[i],1);
+        jsonObject.splice(idx_array[i], 1);
     }
 
     for (let i = 0; i < jsonObject.length; i++) {
@@ -24,7 +24,7 @@ function processQueriedData(jsonObject, phenotype) {
 
                 // Check if data is numeric 
                 for (let j = 0; j < phenotype_array.length; j++) {
-                    if (isNaN(parseFloat(phenotype_array[j]))){
+                    if (isNaN(parseFloat(phenotype_array[j]))) {
                         numericFlag = false;
                         break;
                     } else {
@@ -44,7 +44,7 @@ function processQueriedData(jsonObject, phenotype) {
                     var array_length = 0
                     // Calculate arithmetic mean
                     for (let j = 0; j < phenotype_array.length; j++) {
-                        if (!isNaN(parseFloat(phenotype_array[j]))){
+                        if (!isNaN(parseFloat(phenotype_array[j]))) {
                             arithmetic_mean += parseFloat(phenotype_array[j]);
                             array_length += 1;
                         }
@@ -53,7 +53,7 @@ function processQueriedData(jsonObject, phenotype) {
                     element[phenotype] = arithmetic_mean;
                 } else {
                     // Remove duplicates
-                    var unique_phenotype_array = phenotype_array.filter(function(c, index) {
+                    var unique_phenotype_array = phenotype_array.filter(function (c, index) {
                         return phenotype_array.indexOf(c) === index;
                     });
                     // Add new records to the array
@@ -79,7 +79,7 @@ function processQueriedData(jsonObject, phenotype) {
 }
 
 
-function summarizeQueriedData(jsonObject, phenotype, selectedKey){
+function summarizeQueriedData(jsonObject, phenotype, selectedKey) {
 
     const specialChars = /[`!@#$%^&*()_+=\[\]{};':"\\|,<>\/?~]/;
     const alphabetChars = /[a-zA-Z]+/;
@@ -122,7 +122,7 @@ function summarizeQueriedData(jsonObject, phenotype, selectedKey){
     }
     var accessionArray = [];
     for (let i = 0; i < jsonObject.length; i++) {
-        if(jsonObject[i][selectedKey] != null && jsonObject[i]["Accession"] != null) {
+        if (jsonObject[i][selectedKey] != null && jsonObject[i]["Accession"] != null) {
             if (!accessionArray.includes(jsonObject[i]["Accession"])) {
                 if (jsonObject[i][phenotype] == "" || jsonObject[i][phenotype] === null || jsonObject[i][phenotype] == "null" || jsonObject[i][phenotype] == "-" || jsonObject[i][phenotype] == "_" || jsonObject[i][phenotype] == "NA") {
                     summaryObject[jsonObject[i][selectedKey]]["Number_of_Accession_without_Phenotype"] += 1;
@@ -139,7 +139,7 @@ function summarizeQueriedData(jsonObject, phenotype, selectedKey){
 
     // Check whether data is float
     for (let i = 0; i < processedJsonObject.length; i++) {
-        if (isNaN(parseFloat(processedJsonObject[i][phenotype]))){
+        if (isNaN(parseFloat(processedJsonObject[i][phenotype]))) {
             isFloat = false;
             break;
         } else {
@@ -205,7 +205,7 @@ function summarizeQueriedData(jsonObject, phenotype, selectedKey){
         for (let i = 0; i < selectedKeyArray.length; i++) {
             for (let j = 0; j < phenotypePercentColumnArray.length; j++) {
                 // summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] =  100 * summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] / totalNumberOfPhenotypes;
-                summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] =  100 * summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] / summaryObject[selectedKeyArray[i]]["Number_of_Accession_with_Phenotype"];
+                summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] = 100 * summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] / summaryObject[selectedKeyArray[i]]["Number_of_Accession_with_Phenotype"];
                 if (summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] > 0) {
                     summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] = Math.round(summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] * 100) / 100;
                 }
@@ -227,7 +227,7 @@ function summarizeQueriedData(jsonObject, phenotype, selectedKey){
         summaryArray.push(temp_dict);
     }
 
-    return {'Data':processedJsonObject, 'IsFloat':isFloat, 'Summary': summaryArray};
+    return { 'Data': processedJsonObject, 'IsFloat': isFloat, 'Summary': summaryArray };
 }
 
 
@@ -245,7 +245,7 @@ function collectDataForFigure(jsonObject, phenotype, selectedKey) {
             val = val.trim();
         }
         // Parse value to float if possible
-        if (isNaN(parseFloat(val))){
+        if (isNaN(parseFloat(val))) {
             isFloat = false
         } else {
             if (specialChars.test(val) || alphabetChars.test(val)) {
@@ -264,7 +264,7 @@ function collectDataForFigure(jsonObject, phenotype, selectedKey) {
         }
     }
 
-    return {'Data':dict, 'IsFloat':isFloat};
+    return { 'Data': dict, 'IsFloat': isFloat };
 }
 
 
@@ -287,7 +287,7 @@ function constructInfoTable(res) {
 
     for (let i = 0; i < res.length; i++) {
         var detail_tr = document.createElement("tr");
-        detail_tr.style.backgroundColor = ((i%2) ? "#FFFFFF" : "#DDFFDD");
+        detail_tr.style.backgroundColor = ((i % 2) ? "#FFFFFF" : "#DDFFDD");
         for (let j = 0; j < header_array.length; j++) {
             var detail_td = document.createElement("td");
             detail_td.setAttribute("style", "border:1px solid black; min-width:80px; height:18.5px;");
@@ -306,7 +306,7 @@ function plotFigure(jsonObject, keyColumn, title, divID) {
     var data = [];
     var keys = Object.keys(jsonObject['Data']);
 
-    if (jsonObject['IsFloat']){
+    if (jsonObject['IsFloat']) {
         xAxisTitle = "Phenotype Measurement";
         yAxisTitle = keyColumn;
         // Update title
@@ -378,8 +378,8 @@ function plotFigure(jsonObject, keyColumn, title, divID) {
         };
         // Plot figure
         if (data && layout) {
-            document.getElementById(divID).innerText="";
-            document.getElementById(divID).innerHTML="";
+            document.getElementById(divID).innerText = "";
+            document.getElementById(divID).innerHTML = "";
             if (data.length > 0) {
                 Plotly.newPlot(divID, data, layout, config);
             } else {
@@ -475,8 +475,8 @@ function plotFigure(jsonObject, keyColumn, title, divID) {
         };
         // Plot figure
         if (data && layout) {
-            document.getElementById(divID).innerText="";
-            document.getElementById(divID).innerHTML="";
+            document.getElementById(divID).innerText = "";
+            document.getElementById(divID).innerHTML = "";
             if (data.length > 0) {
                 Plotly.newPlot(divID, data, layout, config);
             } else {

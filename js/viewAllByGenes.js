@@ -1,3 +1,4 @@
+
 function convertJsonToPositionSeparatedCsv(jsonObject) {
     let csvString = '';
 
@@ -52,7 +53,7 @@ function convertJsonToCsv(jsonObject) {
         let tr_keys = Object.keys(jsonObject[i]);
         for (let j = 0; j < tr_keys.length; j++) {
             csvString += ((jsonObject[i][tr_keys[j]] === null) || (jsonObject[i][tr_keys[j]] === undefined)) ? '\"\"' : "\"" + jsonObject[i][tr_keys[j]] + "\"";
-            if (j < (tr_keys.length-1)) {
+            if (j < (tr_keys.length - 1)) {
                 csvString += ',';
             }
         }
@@ -77,8 +78,8 @@ function checkHighlight(event) {
     var id = event.id;
     var id = id.replace(/(_l)|(_r)/, '');
 
-    let input_ids = document.querySelectorAll('input[id^="'+id+'_"]');
-    let td_ids = document.querySelectorAll('td[id^="'+id+'_"]');
+    let input_ids = document.querySelectorAll('input[id^="' + id + '_"]');
+    let td_ids = document.querySelectorAll('td[id^="' + id + '_"]');
 
     if (document.getElementById(event.id).checked) {
         for (let i = 0; i < input_ids.length; i++) {
@@ -124,7 +125,7 @@ function constructMetadataTable(res, organism, dataset, key, gene, chromosome, p
             detail_th.setAttribute("style", "border:1px solid black; min-width:80px; height:18.5px;");
             detail_th.innerHTML = header_array[i];
             detail_header_tr.appendChild(detail_th);
-        } else if(header_array[i] == "Position"){
+        } else if (header_array[i] == "Position") {
             var position_array = res[0]["Position"].split(" ");
             for (let j = 0; j < position_array.length; j++) {
                 var detail_th = document.createElement("th");
@@ -139,14 +140,14 @@ function constructMetadataTable(res, organism, dataset, key, gene, chromosome, p
 
     for (let i = 0; i < res.length; i++) {
         var detail_tr = document.createElement("tr");
-        detail_tr.style.backgroundColor = ((i%2) ? "#FFFFFF" : "#DDFFDD");
+        detail_tr.style.backgroundColor = ((i % 2) ? "#FFFFFF" : "#DDFFDD");
         for (let j = 0; j < header_array.length; j++) {
             if (header_array[j] != "Position" && header_array[j] != "Genotype" && header_array[j] != "Genotype_Description" && header_array[j] != "Imputation") {
                 var detail_td = document.createElement("td");
                 detail_td.setAttribute("style", "border:1px solid black; min-width:80px; height:18.5px;");
                 detail_td.innerHTML = res[i][header_array[j]];
                 detail_tr.appendChild(detail_td);
-            }  else if(header_array[j] == "Genotype_Description"){
+            } else if (header_array[j] == "Genotype_Description") {
                 var genotype_description_array = res[i][header_array[j]].split(" ");
                 for (let k = 0; k < genotype_description_array.length; k++) {
 
@@ -196,10 +197,10 @@ function constructMetadataTable(res, organism, dataset, key, gene, chromosome, p
                     detail_td.style.backgroundColor = td_bg_color;
                     detail_tr.appendChild(detail_td);
                 }
-            } else if(header_array[j] == "Imputation"){
+            } else if (header_array[j] == "Imputation") {
                 var detail_td = document.createElement("td");
                 detail_td.setAttribute("style", "border:1px solid black; min-width:80px; height:18.5px;");
-                if (/[+]/.test(res[i][header_array[j]])){
+                if (/[+]/.test(res[i][header_array[j]])) {
                     detail_td.innerHTML = "+";
                 } else {
                     detail_td.innerHTML = "-";
@@ -214,10 +215,10 @@ function constructMetadataTable(res, organism, dataset, key, gene, chromosome, p
 }
 
 
-function queryMetadataByImprovementStatusAndGenotypeCombination(organism, dataset, key, gene, chromosome, position, genotype, genotypeDescription){
+function queryMetadataByImprovementStatusAndGenotypeCombination(organism, dataset, key, gene, chromosome, position, genotype, genotypeDescription) {
 
     $.ajax({
-        url: 'queryMetadataByImprovementStatusAndGenotypeCombination/'+organism,
+        url: 'queryMetadataByImprovementStatusAndGenotypeCombination/' + organism,
         type: 'GET',
         contentType: 'application/json',
         data: {
@@ -253,12 +254,12 @@ function queryMetadataByImprovementStatusAndGenotypeCombination(organism, datase
 }
 
 
-function queryAllCountsByGene(organism, dataset, gene, improvement_status_array_string){
+function queryAllCountsByGene(organism, dataset, gene, improvement_status_array_string) {
     let improvement_status_array = improvement_status_array_string.split(";");
 
     if (dataset && gene) {
         $.ajax({
-            url: 'queryAllCountsByGene/'+organism,
+            url: 'queryAllCountsByGene/' + organism,
             type: 'GET',
             contentType: 'application/json',
             data: {
@@ -290,12 +291,12 @@ function queryAllCountsByGene(organism, dataset, gene, improvement_status_array_
 }
 
 
-function queryAllByGene(organism, dataset, gene, improvement_status_array_string){
+function queryAllByGene(organism, dataset, gene, improvement_status_array_string) {
     let improvement_status_array = improvement_status_array_string.split(";");
 
     if (dataset && gene) {
         $.ajax({
-            url: 'queryAllByGene/'+organism,
+            url: 'queryAllByGene/' + organism,
             type: 'GET',
             contentType: 'application/json',
             data: {
@@ -327,11 +328,11 @@ function queryAllByGene(organism, dataset, gene, improvement_status_array_string
 }
 
 
-function queryAccessionInformation(organism, dataset){
+function queryAccessionInformation(organism, dataset) {
 
     if (dataset) {
         $.ajax({
-            url: 'queryAccessionInformation/'+organism,
+            url: 'queryAccessionInformation/' + organism,
             type: 'GET',
             contentType: 'application/json',
             data: {
@@ -362,14 +363,14 @@ function queryAccessionInformation(organism, dataset){
 }
 
 
-function queryAllCountsByMultipleGenes(organism, dataset, gene_array_string, improvement_status_array_string){
+function queryAllCountsByMultipleGenes(organism, dataset, gene_array_string, improvement_status_array_string) {
     let gene_array = gene_array_string.split(";");
     let improvement_status_array = improvement_status_array_string.split(";");
 
     if (dataset && gene_array_string) {
-        if(gene_array.length > 0) {
+        if (gene_array.length > 0) {
             $.ajax({
-                url: 'queryAllCountsByMultipleGenes/'+organism,
+                url: 'queryAllCountsByMultipleGenes/' + organism,
                 type: 'GET',
                 contentType: 'application/json',
                 data: {
@@ -405,14 +406,14 @@ function queryAllCountsByMultipleGenes(organism, dataset, gene_array_string, imp
 }
 
 
-function queryAllByMultipleGenes(organism, dataset, gene_array_string, improvement_status_array_string){
+function queryAllByMultipleGenes(organism, dataset, gene_array_string, improvement_status_array_string) {
     let gene_array = gene_array_string.split(";");
     let improvement_status_array = improvement_status_array_string.split(";");
 
     if (dataset && gene_array_string) {
-        if(gene_array.length > 0) {
+        if (gene_array.length > 0) {
             $.ajax({
-                url: 'queryAllByMultipleGenes/'+organism,
+                url: 'queryAllByMultipleGenes/' + organism,
                 type: 'GET',
                 contentType: 'application/json',
                 data: {
