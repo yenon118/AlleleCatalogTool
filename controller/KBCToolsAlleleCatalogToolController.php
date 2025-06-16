@@ -106,7 +106,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
 			$phenotype_table = "act_" . $dataset . "_Phenotype_Data";
 			$phenotype_selection_table = "act_" . $dataset . "_Phenotype_Selection";
 		} elseif ($organism == "Pvulgaris" && $dataset == "PhaseolusVulgaris2078") {
-			$key_column = "Improvement_Status";
+			$key_column = "Frequency_Table";
 			$gff_table = "act_Pvulgaris_v2_1_GFF";
 			$accession_mapping_table = "act_" . $dataset . "_Accession_Mapping";
 			$phenotype_table = "act_" . $dataset . "_Phenotype_Data";
@@ -482,34 +482,28 @@ class KBCToolsAlleleCatalogToolController extends Controller
 		} elseif ($organism == "Pvulgaris" && $dataset == "PhaseolusVulgaris2078") {
 			// Generate SQL string
 			$query_str = "SELECT ";
+			if (in_array("Andean", $improvement_status_array)) {
+				$query_str = $query_str . "COUNT(IF(ACD.Frequency_Table = 'Andean', 1, null)) AS Andean, ";
+			}
+			if (in_array("Middle_American", $improvement_status_array)) {
+				$query_str = $query_str . "COUNT(IF(ACD.Frequency_Table = 'Middle_American', 1, null)) AS Middle_American, ";
+			}
+			if (in_array("Wild", $improvement_status_array)) {
+				$query_str = $query_str . "COUNT(IF(ACD.Frequency_Table = 'Wild', 1, null)) AS Wild, ";
+			}
+			if (in_array("Mix", $improvement_status_array)) {
+				$query_str = $query_str . "COUNT(IF(ACD.Frequency_Table = 'Mix', 1, null)) AS Mix, ";
+			}
 			if (in_array("Ancient", $improvement_status_array)) {
-				$query_str = $query_str . "COUNT(IF(ACD.Improvement_Status = 'Ancient', 1, null)) AS Ancient, ";
+				$query_str = $query_str . "COUNT(IF(ACD.Frequency_Table = 'Ancient', 1, null)) AS Ancient, ";
 			}
-			if (in_array("Breeding line", $improvement_status_array)) {
-				$query_str = $query_str . "COUNT(IF(ACD.Improvement_Status = 'Breeding line', 1, null)) AS Breeding_line, ";
-			}
+			$query_str = $query_str . "COUNT(ACD.Accession) AS Total, ";
 			if (in_array("Cultivar", $improvement_status_array)) {
 				$query_str = $query_str . "COUNT(IF(ACD.Improvement_Status = 'Cultivar', 1, null)) AS Cultivar, ";
 			}
-			if (in_array("Domesticated", $improvement_status_array)) {
-				$query_str = $query_str . "COUNT(IF(ACD.Improvement_Status = 'Domesticated', 1, null)) AS Domesticated, ";
-			}
-			if (in_array("Interspecific advanced line", $improvement_status_array)) {
-				$query_str = $query_str . "COUNT(IF(ACD.Improvement_Status = 'Interspecific advanced line', 1, null)) AS Interspecific_advanced_line, ";
-			}
-			if (in_array("Landrace", $improvement_status_array)) {
-				$query_str = $query_str . "COUNT(IF(ACD.Improvement_Status = 'Landrace', 1, null)) AS Landrace, ";
-			}
-			if (in_array("Variety", $improvement_status_array)) {
-				$query_str = $query_str . "COUNT(IF(ACD.Improvement_Status = 'Variety', 1, null)) AS Variety, ";
-			}
-			if (in_array("Wild", $improvement_status_array)) {
-				$query_str = $query_str . "COUNT(IF(ACD.Improvement_Status = 'Wild', 1, null)) AS Wild, ";
-			}
-			$query_str = $query_str . "COUNT(ACD.Accession) AS Total, ";
 			$query_str = $query_str . "ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description ";
 			$query_str = $query_str . "FROM ( ";
-			$query_str = $query_str . " SELECT AM.Improvement_Status, GENO.Accession, ";
+			$query_str = $query_str . " SELECT AM.Improvement_Status, AM.Frequency_Table, GENO.Accession, ";
 			$query_str = $query_str . "	COMB1.Gene, GENO.Chromosome, ";
 			$query_str = $query_str . "	GROUP_CONCAT(GENO.Position ORDER BY GENO.Position ASC SEPARATOR ' ') AS Position, ";
 			$query_str = $query_str . "	GROUP_CONCAT(GENO.Genotype ORDER BY GENO.Position ASC SEPARATOR ' ') AS Genotype, ";
@@ -528,7 +522,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
 			$query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) AND (FUNC2.Gene LIKE CONCAT('%', COMB1.Gene, '%')) ";
 			$query_str = $query_str . " LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
 			$query_str = $query_str . " ON AM.Accession = GENO.Accession ";
-			$query_str = $query_str . " GROUP BY AM.Improvement_Status, GENO.Accession, COMB1.Gene, GENO.Chromosome ";
+			$query_str = $query_str . " GROUP BY AM.Improvement_Status, AM.Frequency_Table, GENO.Accession, COMB1.Gene, GENO.Chromosome ";
 			$query_str = $query_str . ") AS ACD ";
 			$query_str = $query_str . "GROUP BY ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description ";
 			$query_str = $query_str . $having;
@@ -790,11 +784,11 @@ class KBCToolsAlleleCatalogToolController extends Controller
 		} elseif ($organism == "Pvulgaris" && $dataset == "PhaseolusVulgaris2078") {
 			// Generate SQL string
 			$query_str = "SELECT ";
-			$query_str = $query_str . "ACD.SRA_Study, ACD.SRA_Run, ACD.SRA_Run2, ACD.Country, ACD.Continent, ACD.Organism, ACD.Improvement_Status, ACD.Population, ACD.Alternate_Name, ";
+			$query_str = $query_str . "ACD.SRA_Study, ACD.SRA_Run, ACD.SRA_Run2, ACD.Country, ACD.Continent, ACD.Organism, ACD.Improvement_Status, ACD.Population, ACD.PI, ACD.Frequency_Table, ACD.Alternate_Name, ";
 			$query_str = $query_str . "ACD.Accession, ";
 			$query_str = $query_str . "ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description, ACD.Imputation ";
 			$query_str = $query_str . "FROM ( ";
-			$query_str = $query_str . " SELECT AM.SRA_Study, AM.SRA_Run, AM.SRA_Run2, AM.Country, AM.Continent, AM.Organism, AM.Improvement_Status, AM.Population, AM.Alternate_Name, ";
+			$query_str = $query_str . " SELECT AM.SRA_Study, AM.SRA_Run, AM.SRA_Run2, AM.Country, AM.Continent, AM.Organism, AM.Improvement_Status, AM.Population, AM.PI, AM.Frequency_Table, AM.Alternate_Name, ";
 			$query_str = $query_str . " GENO.Accession, ";
 			$query_str = $query_str . "	COMB1.Gene, GENO.Chromosome, ";
 			$query_str = $query_str . "	GROUP_CONCAT(GENO.Position ORDER BY GENO.Position ASC SEPARATOR ' ') AS Position, ";
@@ -814,7 +808,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
 			$query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) AND (FUNC2.Gene LIKE CONCAT('%', COMB1.Gene, '%')) ";
 			$query_str = $query_str . " LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
 			$query_str = $query_str . " ON AM.Accession = GENO.Accession ";
-			$query_str = $query_str . " GROUP BY AM.SRA_Study, AM.SRA_Run, AM.SRA_Run2, AM.Country, AM.Continent, AM.Organism, AM.Improvement_Status, AM.Population, AM.Alternate_Name, GENO.Accession, COMB1.Gene, GENO.Chromosome ";
+			$query_str = $query_str . " GROUP BY AM.SRA_Study, AM.SRA_Run, AM.SRA_Run2, AM.Country, AM.Continent, AM.Organism, AM.Improvement_Status, AM.Population, AM.PI, AM.Frequency_Table, AM.Alternate_Name, GENO.Accession, COMB1.Gene, GENO.Chromosome ";
 			$query_str = $query_str . ") AS ACD ";
 			$query_str = $query_str . $where;
 			$query_str = $query_str . "ORDER BY ACD.Gene; ";
@@ -899,9 +893,10 @@ class KBCToolsAlleleCatalogToolController extends Controller
 				$sql = "SELECT DISTINCT Improvement_Status AS `Key` FROM " . $db . "." . $accession_mapping_table . " WHERE Improvement_Status IS NOT NULL;";
 				$improvement_status_array = DB::connection($db)->select($sql);
 			} elseif ($organism == "Pvulgaris") {
-				$key_column = "Improvement_Status";
-				$sql = "SELECT DISTINCT Improvement_Status AS `Key` FROM " . $db . "." . $accession_mapping_table . " WHERE Improvement_Status IS NOT NULL;";
+				$key_column = "Frequency_Table";
+				$sql = "SELECT DISTINCT Frequency_Table AS `Key` FROM " . $db . "." . $accession_mapping_table . " WHERE Frequency_Table IS NOT NULL;";
 				$improvement_status_array = DB::connection($db)->select($sql);
+				$improvement_status_array[] = (object) ['Key' => 'Cultivar'];
 			} else {
 				$key_column = "";
 				$improvement_status_array = array();
@@ -994,7 +989,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
 		} elseif ($organism == "Sbicolor" && $dataset == "Sorghum988") {
 			$sql = "SELECT DISTINCT Improvement_Status AS `Key` FROM " . $db . "." . $accession_mapping_table . " WHERE Improvement_Status IS NOT NULL;";
 		} elseif ($organism == "Pvulgaris" && $dataset == "PhaseolusVulgaris2078") {
-			$sql = "SELECT DISTINCT Improvement_Status AS `Key` FROM " . $db . "." . $accession_mapping_table . " WHERE Improvement_Status IS NOT NULL;";
+			$sql = "SELECT DISTINCT Frequency_Table AS `Key` FROM " . $db . "." . $accession_mapping_table . " WHERE Frequency_Table IS NOT NULL;";
 		} else {
 			$sql = "";
 		}
@@ -1002,6 +997,9 @@ class KBCToolsAlleleCatalogToolController extends Controller
 			$improvement_status_array = DB::connection($db)->select($sql);
 		} catch (\Throwable $e) {
 			$improvement_status_array = array();
+		}
+		if ($organism == "Pvulgaris" && $dataset == "PhaseolusVulgaris2078") {
+		    $improvement_status_array[] = (object) ['Key' => 'Cultivar'];
 		}
 
 		$result_arr = [
@@ -1258,6 +1256,10 @@ class KBCToolsAlleleCatalogToolController extends Controller
 		$key_column = $table_names["key_column"];
 		$gff_table = $table_names["gff_table"];
 		$accession_mapping_table = $table_names["accession_mapping_table"];
+
+        if ($organism == "Pvulgaris" && $dataset == "PhaseolusVulgaris2078" && $key == "Cultivar") {
+            $key_column = "Improvement_Status";
+        }
 
 		// Generate SQL string
 		$query_str = "SELECT Chromosome, Start, End, Name AS Gene ";
