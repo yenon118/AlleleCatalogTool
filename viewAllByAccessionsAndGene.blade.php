@@ -161,6 +161,20 @@
                                 "\" target=\"_blank\">" .
                                 $position_array[$j] .
                                 '</a></th>';
+                        } elseif ($organism == 'Pvulgaris' && $dataset == 'PhaseolusVulgaris2078') {
+                            echo "<th style=\"border:1px solid black; min-width:80px;\"><a href=\"../viewVariantAndPhenotype/" .
+                                $organism .
+                                '?Dataset=' .
+                                $dataset .
+                                '&Chromosome=' .
+                                $result_arr[0]->Chromosome .
+                                '&Position=' .
+                                $position_array[$j] .
+                                '&Gene=' .
+                                $result_arr[0]->Gene .
+                                "\" target=\"_blank\">" .
+                                $position_array[$j] .
+                                '</a></th>';
                         } else {
                             echo "<th style=\"border:1px solid black; min-width:80px;\">" .
                                 $position_array[$j] .
