@@ -499,11 +499,11 @@ class KBCToolsAlleleCatalogToolController extends Controller
 			}
 			$query_str = $query_str . "COUNT(ACD.Accession) AS Total, ";
 			if (in_array("Cultivar", $improvement_status_array)) {
-				$query_str = $query_str . "COUNT(IF(ACD.Improvement_Status = 'Cultivar', 1, null)) AS Cultivar, ";
+				$query_str = $query_str . "COUNT(IF(ACD.PI = 'Yes', 1, null)) AS Cultivar, ";
 			}
 			$query_str = $query_str . "ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description ";
 			$query_str = $query_str . "FROM ( ";
-			$query_str = $query_str . " SELECT AM.Improvement_Status, AM.Frequency_Table, GENO.Accession, ";
+			$query_str = $query_str . " SELECT AM.PI, AM.Frequency_Table, GENO.Accession, ";
 			$query_str = $query_str . "	COMB1.Gene, GENO.Chromosome, ";
 			$query_str = $query_str . "	GROUP_CONCAT(GENO.Position ORDER BY GENO.Position ASC SEPARATOR ' ') AS Position, ";
 			$query_str = $query_str . "	GROUP_CONCAT(GENO.Genotype ORDER BY GENO.Position ASC SEPARATOR ' ') AS Genotype, ";
@@ -522,7 +522,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
 			$query_str = $query_str . "	ON (FUNC2.Chromosome = GENO.Chromosome) AND (FUNC2.Position = GENO.Position) AND (FUNC2.Allele = GENO.Genotype) AND (FUNC2.Gene LIKE CONCAT('%', COMB1.Gene, '%')) ";
 			$query_str = $query_str . " LEFT JOIN " . $db . "." . $accession_mapping_table . " AS AM ";
 			$query_str = $query_str . " ON AM.Accession = GENO.Accession ";
-			$query_str = $query_str . " GROUP BY AM.Improvement_Status, AM.Frequency_Table, GENO.Accession, COMB1.Gene, GENO.Chromosome ";
+			$query_str = $query_str . " GROUP BY AM.PI, AM.Frequency_Table, GENO.Accession, COMB1.Gene, GENO.Chromosome ";
 			$query_str = $query_str . ") AS ACD ";
 			$query_str = $query_str . "GROUP BY ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description ";
 			$query_str = $query_str . $having;
@@ -1258,7 +1258,8 @@ class KBCToolsAlleleCatalogToolController extends Controller
 		$accession_mapping_table = $table_names["accession_mapping_table"];
 
         if ($organism == "Pvulgaris" && $dataset == "PhaseolusVulgaris2078" && $key == "Cultivar") {
-            $key_column = "Improvement_Status";
+            $key = "Yes";
+            $key_column = "PI";
         }
 
 		// Generate SQL string
