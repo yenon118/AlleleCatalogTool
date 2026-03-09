@@ -33,8 +33,15 @@
                     <label for="dataset_1"><b>Dataset:</b></label>
                     <select name="dataset_1" id="dataset_1" onchange="updateSearchByGeneIDs('{{ $organism }}', event)">
                         @foreach ($dataset_array as $dataset)
-                            <option value="{{ $dataset }}">{{ str_replace('_', ' ', $dataset) . ' Allele Catalog' }}
-                            </option>
+                            @if($dataset === 'Sorghum400')
+                                <option value="{{ $dataset }}">{{ str_replace('_', ' ', $dataset) . " Allele Catalog (v3)" }}</option>
+                            @elseif($dataset === 'Sorghum499')
+                                <option value="{{ $dataset }}">{{ str_replace('_', ' ', $dataset) . " Allele Catalog (v3)" }}</option>
+                            @elseif($dataset === 'Sorghum988')
+                                <option value="{{ $dataset }}">{{ str_replace('_', ' ', $dataset) . " Allele Catalog (v5)" }}</option>
+                            @else
+                                <option value="{{ $dataset }}">{{ str_replace('_', ' ', $dataset) . " Allele Catalog" }}</option>
+                            @endif
                         @endforeach
                     </select>
                     <br />

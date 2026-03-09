@@ -498,8 +498,8 @@ class KBCToolsAlleleCatalogToolController extends Controller
 				$query_str = $query_str . "COUNT(IF(ACD.Frequency_Table = 'Ancient', 1, null)) AS Ancient, ";
 			}
 			$query_str = $query_str . "COUNT(ACD.Accession) AS Total, ";
-			if (in_array("Cultivar", $improvement_status_array)) {
-				$query_str = $query_str . "COUNT(IF(ACD.PI = 'Yes', 1, null)) AS Cultivar, ";
+			if (in_array("PI", $improvement_status_array)) {
+				$query_str = $query_str . "COUNT(IF(ACD.PI = 'Yes', 1, null)) AS PI, ";
 			}
 			$query_str = $query_str . "ACD.Gene, ACD.Chromosome, ACD.Position, ACD.Genotype, ACD.Genotype_Description ";
 			$query_str = $query_str . "FROM ( ";
@@ -896,7 +896,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
 				$key_column = "Frequency_Table";
 				$sql = "SELECT DISTINCT Frequency_Table AS `Key` FROM " . $db . "." . $accession_mapping_table . " WHERE Frequency_Table IS NOT NULL;";
 				$improvement_status_array = DB::connection($db)->select($sql);
-				$improvement_status_array[] = (object) ['Key' => 'Cultivar'];
+				$improvement_status_array[] = (object) ['Key' => 'PI'];
 			} else {
 				$key_column = "";
 				$improvement_status_array = array();
@@ -999,7 +999,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
 			$improvement_status_array = array();
 		}
 		if ($organism == "Pvulgaris" && $dataset == "PhaseolusVulgaris2078") {
-		    $improvement_status_array[] = (object) ['Key' => 'Cultivar'];
+		    $improvement_status_array[] = (object) ['Key' => 'PI'];
 		}
 
 		$result_arr = [
@@ -1257,7 +1257,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
 		$gff_table = $table_names["gff_table"];
 		$accession_mapping_table = $table_names["accession_mapping_table"];
 
-        if ($organism == "Pvulgaris" && $dataset == "PhaseolusVulgaris2078" && $key == "Cultivar") {
+        if ($organism == "Pvulgaris" && $dataset == "PhaseolusVulgaris2078" && $key == "PI") {
             $key = "Yes";
             $key_column = "PI";
         }
