@@ -129,7 +129,6 @@ function updateSearchByAccessionsandGeneID(organism, event) {
             success: function (response) {
                 res = JSON.parse(response);
 
-
                 if (res.hasOwnProperty('Accession')) {
                     if (res['Accession'].length > 0) {
                         document.getElementById('accession_examples_2').innerHTML = "";

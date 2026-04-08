@@ -107,7 +107,7 @@ $accession_mapping_table = $info['accession_mapping_table'];
                                     </div>
                                 <div class="col-md-12">
                                     <label for="bindingTF1"><b>Accessions</b></label><br />
-                                        <span style="font-size:10pt">
+                                        <span id="accession_examples_2" style="font-size:10pt">
                                             &nbsp;(eg
                                             @foreach($accession_array as $accession)
                                             {{ $accession->Accession }}
