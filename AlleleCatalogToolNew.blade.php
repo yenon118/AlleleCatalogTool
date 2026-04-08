@@ -93,7 +93,15 @@ $accession_mapping_table = $info['accession_mapping_table'];
                                     <label for="dataset_2"><b>Dataset:</b></label>
                                         <select name="dataset_2" id="dataset_2" class="form-control" onchange="updateSearchByAccessionsandGeneID('{{$organism}}', event)">
                                             @foreach($dataset_array as $dataset)
-                                            <option value="{{ $dataset }}">{{ str_replace('_', ' ', $dataset) . " Allele Catalog" }}</option>
+                                                @if($dataset === 'Sorghum400')
+                                                    <option value="{{ $dataset }}">{{ str_replace('_', ' ', $dataset) . " Allele Catalog (v3)" }}</option>
+                                                @elseif($dataset === 'Sorghum499')
+                                                    <option value="{{ $dataset }}">{{ str_replace('_', ' ', $dataset) . " Allele Catalog (v3)" }}</option>
+                                                @elseif($dataset === 'Sorghum988')
+                                                    <option value="{{ $dataset }}">{{ str_replace('_', ' ', $dataset) . " Allele Catalog (v5)" }}</option>
+                                                @else
+                                                    <option value="{{ $dataset }}">{{ str_replace('_', ' ', $dataset) . " Allele Catalog" }}</option>
+                                                @endif
                                             @endforeach
                                         </select>
                                     </div>

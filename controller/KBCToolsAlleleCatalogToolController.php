@@ -87,9 +87,9 @@ class KBCToolsAlleleCatalogToolController extends Controller
 			$accession_mapping_table = "act_" . $dataset . "_Accession_Mapping";
 			$phenotype_table = "act_" . $dataset . "_Phenotype_Data";
 			$phenotype_selection_table = "act_" . $dataset . "_Phenotype_Selection";
-		} elseif ($organism == "Sbicolor" && $dataset == "Sorghum400") {
+		} elseif ($organism == "Sbicolor" && $dataset == "Sorghum988") {
 			$key_column = "Improvement_Status";
-			$gff_table = "act_Sbicolor_v3_1_1_GFF";
+			$gff_table = "act_Sbicolor_v5_1_GFF";
 			$accession_mapping_table = "act_" . $dataset . "_Accession_Mapping";
 			$phenotype_table = "act_" . $dataset . "_Phenotype_Data";
 			$phenotype_selection_table = "act_" . $dataset . "_Phenotype_Selection";
@@ -99,9 +99,9 @@ class KBCToolsAlleleCatalogToolController extends Controller
 			$accession_mapping_table = "act_" . $dataset . "_Accession_Mapping";
 			$phenotype_table = "act_" . $dataset . "_Phenotype_Data";
 			$phenotype_selection_table = "act_" . $dataset . "_Phenotype_Selection";
-		} elseif ($organism == "Sbicolor" && $dataset == "Sorghum988") {
+		} elseif ($organism == "Sbicolor" && $dataset == "Sorghum400") {
 			$key_column = "Improvement_Status";
-			$gff_table = "act_Sbicolor_v5_1_GFF";
+			$gff_table = "act_Sbicolor_v3_1_1_GFF";
 			$accession_mapping_table = "act_" . $dataset . "_Accession_Mapping";
 			$phenotype_table = "act_" . $dataset . "_Phenotype_Data";
 			$phenotype_selection_table = "act_" . $dataset . "_Phenotype_Selection";
@@ -839,8 +839,10 @@ class KBCToolsAlleleCatalogToolController extends Controller
 			$gff_table = "act_Ptrichocarpa_v3_1_GFF";
 			$accession_mapping_table = "act_PopulusTrichocarpa882_Accession_Mapping";
 		} elseif ($organism == "Sbicolor") {
-			$gff_table = "act_Sbicolor_v3_1_1_GFF";
-			$accession_mapping_table = "act_Sorghum400_Accession_Mapping";
+		    $gff_table = "act_Sbicolor_v5_1_GFF";
+			$accession_mapping_table = "act_Sorghum988_Accession_Mapping";
+//			$gff_table = "act_Sbicolor_v3_1_1_GFF";
+//			$accession_mapping_table = "act_Sorghum400_Accession_Mapping";
 		} elseif ($organism == "Pvulgaris") {
 			$gff_table = "act_Pvulgaris_v2_1_GFF";
 			$accession_mapping_table = "act_PhaseolusVulgaris2078_Accession_Mapping";
@@ -856,7 +858,7 @@ class KBCToolsAlleleCatalogToolController extends Controller
 		} elseif ($organism == "Ptrichocarpa") {
 			$dataset_array = array("PopulusTrichocarpa882");
 		} elseif ($organism == "Sbicolor") {
-			$dataset_array = array("Sorghum400", "Sorghum499", "Sorghum988");
+			$dataset_array = array("Sorghum988", "Sorghum499", "Sorghum400");
 		} elseif ($organism == "Pvulgaris") {
 			$dataset_array = array("PhaseolusVulgaris2078");
 		}
@@ -982,11 +984,11 @@ class KBCToolsAlleleCatalogToolController extends Controller
 			$sql = "SELECT DISTINCT `Group` AS `Key` FROM " . $db . "." . $accession_mapping_table . ";";
 		} elseif ($organism == "Osativa" && $dataset == "Rice3000") {
 			$sql = "SELECT DISTINCT Subpopulation AS `Key` FROM " . $db . "." . $accession_mapping_table . ";";
-		} elseif ($organism == "Sbicolor" && $dataset == "Sorghum400") {
+		} elseif ($organism == "Sbicolor" && $dataset == "Sorghum988") {
 			$sql = "SELECT DISTINCT Improvement_Status AS `Key` FROM " . $db . "." . $accession_mapping_table . " WHERE Improvement_Status IS NOT NULL;";
 		} elseif ($organism == "Sbicolor" && $dataset == "Sorghum499") {
 			$sql = "SELECT DISTINCT Improvement_Status AS `Key` FROM " . $db . "." . $accession_mapping_table . " WHERE Improvement_Status IS NOT NULL;";
-		} elseif ($organism == "Sbicolor" && $dataset == "Sorghum988") {
+		} elseif ($organism == "Sbicolor" && $dataset == "Sorghum400") {
 			$sql = "SELECT DISTINCT Improvement_Status AS `Key` FROM " . $db . "." . $accession_mapping_table . " WHERE Improvement_Status IS NOT NULL;";
 		} elseif ($organism == "Pvulgaris" && $dataset == "PhaseolusVulgaris2078") {
 			$sql = "SELECT DISTINCT Frequency_Table AS `Key` FROM " . $db . "." . $accession_mapping_table . " WHERE Frequency_Table IS NOT NULL;";
