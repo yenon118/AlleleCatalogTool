@@ -38,7 +38,7 @@
                             @elseif($dataset === 'Sorghum499')
                                 <option value="{{ $dataset }}">{{ str_replace('_', ' ', $dataset) . " Allele Catalog (v3)" }}</option>
                             @elseif($dataset === 'Sorghum988')
-                                <option value="{{ $dataset }}">{{ str_replace('_', ' ', $dataset) . " Allele Catalog (v5)" }}</option>
+                                <option value="{{ $dataset }}">{{ str_replace('_', ' ', $dataset) . " Allele Catalog (v5.1)" }}</option>
                             @else
                                 <option value="{{ $dataset }}">{{ str_replace('_', ' ', $dataset) . " Allele Catalog" }}</option>
                             @endif
@@ -93,7 +93,7 @@
                             @elseif($dataset === 'Sorghum499')
                                 <option value="{{ $dataset }}">{{ str_replace('_', ' ', $dataset) . " Allele Catalog (v3)" }}</option>
                             @elseif($dataset === 'Sorghum988')
-                                <option value="{{ $dataset }}">{{ str_replace('_', ' ', $dataset) . " Allele Catalog (v5)" }}</option>
+                                <option value="{{ $dataset }}">{{ str_replace('_', ' ', $dataset) . " Allele Catalog (v5.1)" }}</option>
                             @else
                                 <option value="{{ $dataset }}">{{ str_replace('_', ' ', $dataset) . " Allele Catalog" }}</option>
                             @endif

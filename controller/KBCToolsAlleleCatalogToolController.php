@@ -1525,24 +1525,26 @@ class KBCToolsAlleleCatalogToolController extends Controller
 
 			$temp_gene_result_arr = DB::connection($db)->select($query_str);
 
-			$query_str = self::getSummarizedDataQueryString(
-				$organism,
-				$dataset,
-				$db,
-				$gff_table,
-				$accession_mapping_table,
-				$gene_array[$i],
-				$temp_gene_result_arr[0]->Chromosome,
-				$improvement_status_array,
-				""
-			);
+			if (!empty($temp_gene_result_arr)) {
+                $query_str = self::getSummarizedDataQueryString(
+                    $organism,
+                    $dataset,
+                    $db,
+                    $gff_table,
+                    $accession_mapping_table,
+                    $gene_array[$i],
+                    $temp_gene_result_arr[0]->Chromosome,
+                    $improvement_status_array,
+                    ""
+                );
 
-			$result_arr = DB::connection($db)->select($query_str);
+                $result_arr = DB::connection($db)->select($query_str);
 
-			if (!isset($allele_catalog_result_arr)) {
-				$allele_catalog_result_arr = (array) $result_arr;
-			} else {
-				$allele_catalog_result_arr = array_merge($allele_catalog_result_arr, (array) $result_arr);
+                if (!isset($allele_catalog_result_arr)) {
+                    $allele_catalog_result_arr = (array) $result_arr;
+                } else {
+                    $allele_catalog_result_arr = array_merge($allele_catalog_result_arr, (array) $result_arr);
+                }
 			}
 		}
 
@@ -1621,23 +1623,25 @@ class KBCToolsAlleleCatalogToolController extends Controller
 
 			$temp_gene_result_arr = DB::connection($db)->select($query_str);
 
-			$query_str = self::getDataQueryString(
-				$organism,
-				$dataset,
-				$db,
-				$gff_table,
-				$accession_mapping_table,
-				$gene_array[$i],
-				$temp_gene_result_arr[0]->Chromosome,
-				""
-			);
+            if (!empty($temp_gene_result_arr)) {
+                $query_str = self::getDataQueryString(
+                    $organism,
+                    $dataset,
+                    $db,
+                    $gff_table,
+                    $accession_mapping_table,
+                    $gene_array[$i],
+                    $temp_gene_result_arr[0]->Chromosome,
+                    ""
+                );
 
-			$result_arr = DB::connection($db)->select($query_str);
+                $result_arr = DB::connection($db)->select($query_str);
 
-			if (!isset($allele_catalog_result_arr)) {
-				$allele_catalog_result_arr = (array) $result_arr;
-			} else {
-				$allele_catalog_result_arr = array_merge($allele_catalog_result_arr, (array) $result_arr);
+                if (!isset($allele_catalog_result_arr)) {
+                    $allele_catalog_result_arr = (array) $result_arr;
+                } else {
+                    $allele_catalog_result_arr = array_merge($allele_catalog_result_arr, (array) $result_arr);
+                }
 			}
 		}
 
